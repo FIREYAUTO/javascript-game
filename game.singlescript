@@ -148,12 +148,11 @@ r."PreRender"."Connect"(#(s,d){
     	@`Instance`=`Projectile`."Instance";
 	@`Velocity`=`Projectile`."Velocity";
 	`Projectile`."Time"=`Projectile`."Time"+d;
+	`Instance`."Position"=`Instance`."Position"."Add"(`Velocity`);
 	?`Projectile`."Time">`Projectile`."Lifetime"{
 		`Instance`."Delete"();
-		&`Projectiles`[_];
-		>;
+		`Projectiles`."splice"(`Projectiles`."indexOf"(`Projectile`),'1');
 	}
-	`Instance`."Position"=`Instance`."Position"."Add"(`Velocity`);
     }
 });
 
