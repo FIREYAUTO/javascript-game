@@ -142,7 +142,7 @@ r."PreRender"."Connect"(#(s,d){
     `UI`."FPS"."Text"="FPS: "+M."nround"('1'/d,'3');
     `UI`."Angle"."Text"="Angle: "+M."nround"(b."Rotation",'3');
     `UI`."Position"."Text"="Position: "+M."nround"(`CP`.X,'3')+","+M."nround"(`CP`.Y,'3');
-    @`Projs`=[*`Projectiles`]
+    @`Projs`=[*`Projectiles`];
     :<_,`Projectile`>`Projs`{
     	@`Instance`=`Projectile`."Instance";
 	@`Velocity`=`Projectile`."Velocity";
