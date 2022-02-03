@@ -37,6 +37,7 @@ b."Parent"=W;
 		"Text"="FPS: 0";
 		"Font"=E."Font"."Arial";
 		"BorderSize"='0';
+		"BorderColor"=+C('0','0','0','1');
 	});
 	"Angle"=I.n("Text",{
 		"Parent"=`UIE`;
@@ -47,6 +48,7 @@ b."Parent"=W;
 		"Text"="Angle: 0";
 		"Font"=E."Font"."Arial";
 		"BorderSize"='0';
+		"BorderColor"=+C('0','0','0','1');
 	});
 	"Position"=I.n("Text",{
 		"Parent"=`UIE`;
@@ -57,6 +59,7 @@ b."Parent"=W;
 		"Text"="Position: 0,0";
 		"Font"=E."Font"."Arial";
 		"BorderSize"='0';
+		"BorderColor"=+C('0','0','0','1');
 	});
 };
 
