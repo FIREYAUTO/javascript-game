@@ -116,6 +116,7 @@ b."Parent"=W;
 	});
 	@`Object` = {
 		"Velocity"=`Direction`;
+		"BaseVelocity"=`Direction`;
 		"Instance"=`Instance`;
 		"Lifetime"=`Lifetime`;
 		"Time"='0';
@@ -149,6 +150,7 @@ r."PreRender"."Connect"(#(s,d){
 	@`Velocity`=`Projectile`."Velocity";
 	`Projectile`."Time"=`Projectile`."Time"+d;
 	`Instance`."Position"=`Instance`."Position"."Add"(`Velocity`);
+	`Projectile`."Velocity"=`Projectile`."BaseVelocity"."Lerp"(V('0','0'),`Projectile`."Time"/`Projectile`."Lifetime");
 	?`Projectile`."Time">`Projectile`."Lifetime"{
 		`Instance`."Delete"();
 		`Projectiles`."splice"(`Projectiles`."indexOf"(`Projectile`),'1');
