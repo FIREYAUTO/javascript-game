@@ -109,6 +109,7 @@ b."Parent"=W;
 
 #`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1',`Speed`='1',`Color`=C."RGB"('0.5','0.5','0.5','0')){
 	`Direction`=`Direction`."Mul"(`Speed`);
+	l(`Direction`);
 	@`Instance` = I.n("Circle",{
 		"Position"=`Position`;
 		"Parent"=W;
@@ -169,7 +170,7 @@ i."InputBegan"."Connect"(#(s,o){
     	@k=m[o."Key"];
     	?kk.d=T;
     }|o."Type":o."MOUSE"{
-    	`SpawnProjectile`(b."Position",b."FrontVector");
+    	`SpawnProjectile`(b."Position",b."FrontVector",'1','1',C."RGB"('0.5','0.5','0.5','0'));
     }
 });
 
