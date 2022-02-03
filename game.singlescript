@@ -107,7 +107,7 @@ b."Parent"=W;
 
 @`Projectiles`=[];
 
-#`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1',`Speed`='1',`Color`=C."RGB"('0.5','0.5','0.5)){
+#`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1',`Speed`='1',`Color`=C."RGB"('0.5','0.5','0.5')){
 	`Direction`=`Direction`."Mul"(`Speed`);
 	@`Instance` = I.n("Circle",{
 		"Position"=`Position`;
