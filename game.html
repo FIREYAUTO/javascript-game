@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#screen {
+	width:550px;
+    height:350px;
+    border:3px solid #4a4a4a;
+    border-radius:2px;
+    background:#000000;
+}
+#output {
+	border-left:5x solid #e7e7e7;
+    padding-left:10px;
+}
+</style>
+</head>
+<body>
+<script src="https://fireyauto.github.io/SingleScript/src.js"></script>
+<canvas id="screen"></canvas>
+<pre id="output"></pre>
+<script>
+
+const Elements = {
+	Screen:"#screen",
+	Output:"#output",
+}
+
+for(let k in Elements)Elements[k]=document.querySelector(Elements[k]);
+
+Elements.Screen.width = 550;
+Elements.Screen.height = 350;
+
+Math.deg=function(x){return x*(180/Math.PI)}
+Math.rad=function(x){return x*(Math.PI/180)}
+Math.nround=function(a,b=0){let m=10**b;return Math.floor(a*m+0.5)/m}
+
+//{{ Log Function }}\\
+
+function Apply(a,b){
+	for(let k in b){
+    	let v = b[k];
+        if(typeof v=="object"){
+        	Apply(a[k],v);
+        }else{
+        	a[k]=v;
+        }
+    }
+}
+
+function Create(a,b,c={}){
+	let e = document.createElement(a);
+    if(b)b.appendChild(e);
+   	Apply(e,c);
+    return e;
+}
+
+function Log(Text,Color="#000000"){
+	Create("p",Elements.Output,{
+    	innerHTML:Text,
+    	style:{
+        	color:Color,
+        	marginTop:"0",
+            marginBottom:"0",
+        },
+    });
+}
+
+function Lerp(a,b,t){
+	return (1-t)*a+t*b;
+}
+
+function RandomNumber(Min,Max){
+	if (Min===undefined||Max===undefined){return 0}
+	if (Min >= Max){return Max}
+    if (Min > Max){
+    	let PMax = Max
+        Max = Min
+        Min = PMax
+	}
+    return (Math.random() * (Max - Min + 1)) + Min
+}
+
+function RandomInt(Min,Max){
+	if (Min===undefined||Max===undefined){return 0}
+	if (Min >= Max){return Max}
+    if (Min > Max){
+    	let PMax = Max
+        Max = Min
+        Min = PMax
+	}
+    return Math.floor(Math.random() * (Max - Min + 1)) + Min
+}
+
+//{{ Classes }}\\
+
+class VectorBase {
+	constructor(){
+    	return this;
+    }
+    Add(v){return this.Math(v,(a,b)=>a+b)}
+    Sub(v){return this.Math(v,(a,b)=>a-b)}
+    Mul(v){return this.Math(v,(a,b)=>a*b)}
+    Div(v){return this.Math(v,(a,b)=>a/b)}
+    Mod(v){return this.Math(v,(a,b)=>a%b)}
+    Pow(v){return this.Math(v,(a,b)=>a**b)}
+}
+
+class Vector2 extends VectorBase {
+	constructor(x=0,y=0){super();this.x=x;this.y=y}
+    get X(){return this.x}
+    get Y(){return this.y}
+    set X(v){return this.x=v}
+    set Y(v){return this.y=v}
+    toString(){return `${this.x},${this.y}`}
+    Math(v,c){let x=v,y=v;if(v instanceof Vector2)x=v.x,y=v.y;return new Vector2(c(this.x,x),c(this.y,y))}
+    get Magnitude(){return Math.sqrt((this.x**2)+(this.y**2))}
+    Normalize(){let m = this.Magnitude;return new Vector2(this.x/m,this.y/m)}
+    NoNan(){let{x,y}=this;return new Vector2(isNaN(x)?0:x,isNaN(y)?0:y)}
+    Lerp(v,t){return new Vector2(Lerp(this.x,v.x,t),Lerp(this.y,v.y,t))}
+}
+
+class UIVector extends VectorBase {
+	constructor(sx,ox,sy,oy){super();this.sx=sx;this.ox=ox;this.sy=sy;this.oy=oy}
+    get SX(){return this.sx}
+    get OX(){return this.ox}
+    get SY(){return this.sy}
+    get OY(){return this.oy}
+    set SX(v){return this.sx=v}
+    set OX(v){return this.ox=v}
+    set SY(v){return this.sy=v}
+    set OY(v){return this.oy=v}
+    toString(){return `${this.sx},${this.ox},${this.sy},${this.oy}`}
+    Math(v,c){let sx=v,sy=v,ox=v,oy=v;if(v instanceof UIVector)sx=v.sx,sy=v.sy,ox=v.ox,oy=v.oy;return new UIVector(c(this.sx,sx),c(this.ox,ox),c(this.sy,sy),c(this.oy,oy))}
+    Lerp(v,t){return new UIVector(Lerp(this.sx,v.sx,t),Lerp(this.ox,v.ox,t),Lerp(this.sy,v.sy,t),Lerp(this.oy,v.oy,t))}
+}
+
+class Color {
+	constructor(r=0,g=0,b=0,a=0){this.r=r;this.g=g;this.b=b;this.a=a}
+    get R(){return this.r}
+    get G(){return this.g}
+    get B(){return this.b}
+    get A(){return this.a}
+    set R(v){return this.r=v}
+    set G(v){return this.g=v}
+    set B(v){return this.b=v}
+    set A(v){return this.a=v}
+    toString(){return `rgba(${this.r},${this.g},${this.b},${1-this.a})`}
+    static RGB(r=0,g=0,b=0,a=0){return new Color(r*255,g*255,b*255,a)}
+    Lerp(v,t){return new Color(Lerp(this.r,v.r,t),Lerp(this.g,v.g,t),Lerp(this.b,v.b,t),Lerp(this.a,v.a,t))}
+}
+
+function AngleToVector(A){
+	A=Math.rad(A);return new Vector2(Math.cos(A),Math.sin(A))
+}
+
+//{{ Instances }}\\
+
+const Instances = {
+	"Instance":{
+    	"SuperClasses":[],
+        "CanCreate":false,
+    	"Properties":{
+        	"ClassName":{
+            	CanSet:false,CanGet:true,
+                Value:"Instance",
+            },
+        	"Name":{
+            	CanSet:true,CanGet:true,
+                Value:"Instance",
+            },
+            "Children":{
+            	CanSet:false,CanGet:true,
+                Value:[],
+            },
+            "Parent":{
+            	CanSet:true,CanGet:true,
+                Value:undefined,
+                OnSet:function(self,Name,Value){
+                	if(self.Props.hasOwnProperty("Deleted"))return;
+                	if(self.Props.hasOwnProperty("NoParent"))return;
+                	let Previous = self.Props[Name];
+                    if(Previous==Value){return}
+                    if(Previous instanceof Object){
+                    	Previous.Children.splice(Previous.Children.indexOf(self.Proxy),1);
+                    }
+                    self.Props[Name]=Value;
+                	if(!Value||!(Value instanceof Object))return;
+                    if(Object.prototype.hasOwnProperty.call(Value,"Children")){
+                    	Value.Children.push(self.Proxy);
+                    }
+                },
+            },
+            "IsA":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,ClassName){
+                	let SuperClasses = GetSuperClasses(self.Props.ClassName);
+                    return SuperClasses.includes(ClassName);
+                }
+            },
+            "Descendants":{
+            	CanSet:false,CanGet:true,
+                Value:undefined,
+                OnGet:function(self,Name){
+                	let D=[];
+                	let Children = self.Props.Children;
+                    for(let v of Children){
+                    	D.push(v);
+                        let n = v.Descendants;
+                        for(let x of n){
+                        	D.push(x);
+                        }
+                    }
+                    return D;
+                },
+            },
+            "Child":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Name){
+                	let Children = self.Props.Children;
+                    for(let Child of Children){
+                    	if(Child.Name === Name){
+                        	return Child;
+                        }
+                    }
+                },
+            },
+            "ChildOfClass":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Class){
+                	let Children = self.Props.Children;
+                    for(let Child of Children){
+                    	if(Child.IsA(Class)){
+                        	return Child;
+                        }
+                    }
+                },
+            },
+            "Delete":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	if(self.Props.hasOwnProperty("NoParent"))return;
+                    for(let Name in self.Props){
+                    	let Value = self.Props[Name];
+                        if(Value instanceof SignalBase){
+                        	Value.DisconnectAll();
+                        }
+                    }
+                    self.Proxy.Parent = undefined;
+                    self.Props.Deleted = true;
+                    for(let Child of self.Props.Children){
+                    	Child.Delete();
+                    }
+                },
+            },
+        	/*
+        	"Name":{
+            	CanSet:true,
+                CanGet:true,
+                Value:"Name",
+                OnGet:function(self,Name){
+                	
+                },
+                OnSet:function(self,Name,Value){
+                	
+                },
+            },
+            */
+        },
+        "Connections":["Changed"],
+    },
+    "Game":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Created":function(self){
+        	let Services = {
+            	World:"World",
+                Screen:"ScreenService",
+            	Input:"InputService",
+                Render:"RenderService",
+                UI:"UI",
+            }
+            for(let Name in Services){
+            	self.Props.Services[Name]=NewInstance(Services[Name]).Proxy;
+            }
+            self.Props.World = self.Props.Services.World;
+            self.Props.Screen = self.Props.Services.Screen;
+        },
+        "Properties":{
+        	"NoParent":{CanSet:false,CanGet:false,Value:true},
+        	"Services":{
+            	CanSet:false,CanGet:true,
+                Value:{},
+            },
+            "World":{
+            	CanSet:false,CanGet:true,
+                Value:undefined,
+            },
+            "Screen":{
+            	CanSet:false,CanGet:true,
+                Value:undefined,
+            },
+            "GetCamera":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	return self.Props.Screen.Camera;
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Input":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Properties":{
+        	"Type":{
+            	CanSet:false,CanGet:true,
+                Value:0,
+            },
+            "Key":{
+            	CanSet:false,CanGet:true,
+                Value:"None",
+            },
+            "Position":{
+            	CanSet:false,CanGet:true,
+                Value:new Vector2(0,0),
+            },
+            "NONE":{CanSet:false,CanGet:true,Value:0},
+            "KEY":{CanSet:false,CanGet:true,Value:1},
+            "MOUSE":{CanSet:false,CanGet:true,Value:2},
+            "MOUSEMOVE":{CanSet:false,CanGet:true,Value:3},
+        },
+        "Connections":[],
+    },
+    "Service":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Properties":{
+        	"NoParent":{CanSet:false,CanGet:false,Value:true},
+        },
+        "Connections":[],
+    },
+    "InputService":{
+    	"SuperClasses":["Service"],
+        "CanCreate":false,
+        "Created":function(self){
+        	window.addEventListener("keydown",Event=>{
+            	let Input = NewInstance("Input");
+                Input.Props.Type = Input.Props.KEY;
+                Input.Props.Key = Event.key||Event.which;
+                //self.Props.InputBegan.Fire(Input.Proxy);
+                self.Props.InputQueue.push(["InputBegan",Input.Proxy]);
+                self.Props.KeysDown[Input.Props.Key.toLowerCase()]=true;
+            });
+            window.addEventListener("keyup",Event=>{
+            	let Input = NewInstance("Input");
+                Input.Props.Type = Input.Props.KEY;
+                Input.Props.Key = Event.key||Event.which;
+                //self.Props.InputEnded.Fire(Input.Proxy);
+                self.Props.InputQueue.push(["InputEnded",Input.Proxy]);
+                delete self.Props.KeysDown[Input.Props.Key.toLowerCase()];
+            });
+            window.addEventListener("mousedown",Event=>{
+            	let Input = NewInstance("Input");
+                Input.Props.Type = Input.Props.MOUSE;
+                Input.Props.Position = (new Vector2(Event.offsetX,Event.offsetY)).Div(GameInstance.Proxy.Screen.ASize);
+                //self.Props.InputBegan.Fire(Input.Proxy);
+                self.Props.InputQueue.push(["InputBegan",Input.Proxy]);
+            });
+            window.addEventListener("mouseup",Event=>{
+            	let Input = NewInstance("Input");
+                Input.Props.Type = Input.Props.MOUSE;
+                Input.Props.Position = (new Vector2(Event.offsetX,Event.offsetY)).Div(GameInstance.Proxy.Screen.ASize);
+               	//self.Props.InputEnded.Fire(Input.Proxy);
+                self.Props.InputQueue.push(["InputEnded",Input.Proxy]);
+            });
+            window.addEventListener("mousemove",Event=>{
+            	let Input = NewInstance("Input");
+                Input.Props.Type = Input.Props.MOUSEMOVE;
+                Input.Props.Position = (new Vector2(Event.offsetX,Event.offsetY)).Div(GameInstance.Proxy.Screen.PixelSize);
+                //self.Props.InputChanged.Fire(Input.Proxy);
+                self.Props.InputQueue.push(["InputChanged",Input.Proxy]);
+                self.Props.MousePosition = Input.Props.Position
+            });
+        },
+        "Properties":{
+        	"InputQueue":{
+            	CanSet:true,CanGet:true,
+                Value:[],
+            },
+            "MousePosition":{
+            	CanSet:false,CanGet:true,
+                Value:new Vector2(0,0),
+            },
+            "KeysDown":{
+            	CanSet:false,CanGet:false,
+                Value:{},
+            },
+            "IsKeyDown":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Key=""){
+                	Key=String(Key).toLowerCase();
+                    return self.Props.KeysDown.hasOwnProperty(Key);
+                }
+            },
+        },
+		"Connections":["InputBegan","InputEnded","InputChanged"],
+    },
+    RenderService:{
+    	"SuperClasses":["Service"],
+        "CanCreate":false,
+        "Created":function(self){
+        	setInterval(()=>{
+            	self.Props.Frame();
+            },self.Props.FPS*1000);
+        },
+        "Properties":{
+        	"LastTime":{CanSet:false,CanGet:true,Value:Date.now()/1000},
+        	"FPS":{CanSet:false,CanGet:true,Value:1/15},
+            "Frame":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	let NT = Date.now()/1000;
+            		let Delta = NT-self.Props.LastTime;
+                	self.Props.LastTime = NT;
+                    //Input Handling
+                    let Input = GameInstance.Proxy.Services.Input;
+                    for(let v of Input.InputQueue){
+                    	Input[v[0]].Fire(v[1]);
+                    }
+                    Input.InputQueue = [];
+                    //Fire PreRender
+            		self.Props.PreRender.Fire(Delta);
+                	//Game Render
+                    GameInstance.Proxy.Screen.Clear();
+                    let _C = GameInstance.Proxy.World.Descendants;
+                    let C = [];
+                    for(let Child of _C){
+                    	if(Child.IsA("Renderable")){
+                        	C.push(Child);
+                        }
+                    }
+                    C.sort((a,b)=>
+                    	a.RenderPriority > b.RenderPriority ? 1 :
+                        a.RenderPriority < b.RenderPriority ? -1 :
+                        0
+                    );
+                    for(let i=0,k=C.length-1;i<=k;i++){
+                    	C[i].OnRender(Delta);
+                    }
+                    //UI Render
+                    let U=GameInstance.Proxy.Services.UI.Descendants;
+                    for(let x of U){
+                    	if(x.IsA("UIElement")){
+                        	x.OnRender(Delta);
+                        }
+                    }
+                	//Fire PostRender
+            		self.Props.PostRender.Fire(Delta);
+                },
+            },
+        },
+        "Connections":["PreRender","PostRender"],
+    },
+    "World":{
+    	"SuperClasses":["Service"],
+        "CanCreate":false,
+        "Properties":{
+        	
+        },
+        "Connections":[],
+    },
+    "ScreenService":{
+    	"SuperClasses":["Service"],
+        "CanCreate":false,
+        "Created":function(self){
+        	let Canvas = self.Props.Canvas;
+        	self.Props.Size = new Vector2(Canvas.width,Canvas.height);
+            self.Props.Context = Canvas.getContext("2d");
+            self.Props.Context.imageSmoothingEnabled = false;
+            self.Props.ASize = self.Props.Size.Div(self.Props.PixelSize);
+            self.Props.Camera = NewInstance("Camera").Proxy;
+        },
+        "Properties":{
+        	"Canvas":{
+            	CanSet:false,CanGet:true,
+                Value:Elements.Screen,
+            },
+            "Context":{
+            	CanSet:false,CanGet:true,
+                Value:undefined,
+            },
+            "Camera":{
+            	CanSet:false,CanGet:true,
+                Value:undefined,
+            },
+            "Size":{
+            	CanSet:false,CanGet:true,
+                Value:new Vector2(),
+            },
+            "ASize":{
+            	CanSet:false,CanGet:true,
+                Value:new Vector2(),
+            },
+            "PixelSize":{
+            	CanSet:false,CanGet:true,
+                Value:new Vector2(10,10),
+            },
+            "ClearTransform":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	self.Props.Context.setTransform(1,0,0,1,0,0);
+                },
+            },
+            "Translate":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,X,Y){
+                	self.Props.Context.translate(X,Y);
+                },
+            },
+            "Rotate":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,A){
+                	self.Props.Context.rotate(Math.rad(A));
+                },
+            },
+            "Clear":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	self.Proxy.ClearTransform();
+                	self.Props.Context.clearRect(0,0,self.Props.Size.x,self.Props.Size.y);
+                },
+            },
+            "GetPositionOnScreen":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,P,S=new Vector2()){
+                	let PS = self.Props.PixelSize;
+                    let CP = self.Props.Camera.Position.Add(S.Div(2));
+                    return (new Vector2(((P.X-CP.X)+(S.X/2)),((P.Y-CP.Y)+(S.Y/2)))).Add(self.Props.ASize.Div(2)).Mul(PS);
+                },
+            },
+            "Rect":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Position,Size,Color,Rotation=0){
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = self.Props.GetPositionOnScreen(Position,Size)
+                	self.Props.Translate(P.X,P.Y);
+                    self.Props.Rotate(Rotation);
+                    let Context = self.Props.Context;
+                    Context.fillStyle=Color.toString();
+                    Context.fillRect((-Size.x/2)*PS.X,(-Size.y/2)*PS.Y,Size.x*PS.X,Size.y*PS.Y);
+                },
+            },
+            "Line":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,P0,P1,Color,Width=1){
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = self.Props.GetPositionOnScreen(P0,new Vector2());
+                    let P2 = self.Props.GetPositionOnScreen(P1,new Vector2());
+                	self.Props.Translate(P.X,P.Y);
+                    let Context = self.Props.Context;
+                    Context.beginPath();
+                    Context.strokeStyle=Color.toString();
+                    Context.lineWidth=`${Width}px`;
+                    Context.moveTo(0,0)
+                    Context.lineTo(P2.x-P.x,P2.y-P.y);
+                    Context.stroke();
+                },
+            },
+            "Circle":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Position,Radius,Color){
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = self.Props.GetPositionOnScreen(Position,new Vector2());
+                	self.Props.Translate(P.X,P.Y);
+                    let Context = self.Props.Context;
+                    Context.beginPath();
+                    Context.fillStyle=Color.toString();
+                    Context.arc(0,0,(Radius*((PS.X+PS.Y)/2))/2,0,2*Math.PI);
+                    Context.fill();
+                },
+            },
+            "Text":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Text,Font,Position,Size,Color,Rotation=0){
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = self.Props.GetPositionOnScreen(Position,Size)
+                	self.Props.Translate(P.X,P.Y);
+                    self.Props.Rotate(Rotation);
+                    let Context = self.Props.Context;
+                    Context.font=`${Size.Y*PS.Y}px ${Font}`;
+                    Context.fillStyle=Color.toString()
+                    Context.fillText(Text,(-Size.x/2)*PS.X,(-Size.y/2)*PS.Y,Size.x*PS.X);
+                },
+            },
+            "UIVectorToVector2":{
+            	"CanSet":false,"CanGet":true,
+                Value:function(self,UV){
+                	let PS = self.Props.PixelSize;
+                    let AS = self.Props.ASize;
+                    return new Vector2(((UV.sx*AS.x)+UV.ox),((UV.sy*AS.y)+UV.oy));
+                }
+            },
+            "FillText":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Text,Font,Position,Size,Color){
+                	if (Position instanceof UIVector)
+                    	Position=self.Props.UIVectorToVector2(Position);
+                   	if (Size instanceof UIVector)
+                    	Size=self.Props.UIVectorToVector2(Size);
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = Position.Mul(PS);
+                	self.Props.Translate(P.X,P.Y);
+                    let Context = self.Props.Context;
+                    Context.font=`${Size.Y*PS.Y}px ${Font}`;
+                    Context.fillStyle=Color.toString()
+                    Context.fillText(Text,0,Size.Y*PS.Y,Size.X*PS.X);
+                },
+            },
+            "FillRect":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Position,Size,Color){
+                	if (Size instanceof UIVector)
+                    	Size=self.Props.UIVectorToVector2(Size);
+                    if (Position instanceof UIVector)
+                    	Position=self.Props.UIVectorToVector2(Position);
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = Position.Mul(PS);
+                	self.Props.Translate(P.X,P.Y);
+                    let Context = self.Props.Context;
+                    Context.fillStyle=Color.toString();
+                    Context.fillRect(0,0,Size.x*PS.X,Size.y*PS.Y);
+                },
+            },
+            "StrokeRect":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,Position,Size,Color,Width){
+                	if (Position instanceof UIVector)
+                    	Position=self.Props.UIVectorToVector2(Position);
+                    if (Size instanceof UIVector)
+                    	Size=self.Props.UIVectorToVector2(Size);
+                	self.Props.ClearTransform();
+                    let PS = self.Props.PixelSize;
+                    let P = Position.Mul(PS);
+                	self.Props.Translate(P.X,P.Y);
+                    let Context = self.Props.Context;
+                    Context.strokeStyle=Color.toString();
+                    Context.lineWidth=`${Width}px`;
+                    Context.strokeRect(0,0,Size.x*PS.X,Size.y*PS.Y);
+                },
+            },
+        },
+        "Connections":[],
+    },
+    "UI":{
+    	"SuperClasses":["Service"],
+        "CanCreate":false,
+        "Properties":{
+        	
+        },
+        "Connections":[],
+    },
+    "UIElement":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Properties":{
+        	"Position":{CanSet:true,CanGet:true,Value:new UIVector(0,0,0,0)},
+        	"Size":{CanSet:true,CanGet:true,Value:new UIVector(0,1,0,1)},
+            "BackgroundColor":{CanSet:true,CanGet:true,Value:new Color(255,255,255)},
+            "BorderColor":{CanSet:true,CanGet:true,Value:new Color(0,0,0)},
+            "BorderSize":{CanSet:true,CanGet:true,Value:1},
+            "OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Text":{
+    	"SuperClasses":["UIElement"],
+        "CanCreate":true,
+        "Properties":{
+        	"Text":{CanSet:true,CanGet:true,Value:"Text"},
+            "TextColor":{CanSet:true,CanGet:true,Value:new Color(0,0,0)},
+            "Font":{CanSet:true,CanGet:true,Value:"Georgia"},
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	let Screen = GameInstance.Proxy.Screen;
+                    Screen.FillRect(self.Props.Position,self.Props.Size,self.Props.BackgroundColor);
+                    Screen.StrokeRect(self.Props.Position,self.Props.Size,self.Props.BorderColor,self.Props.BorderSize);
+                    Screen.FillText(self.Props.Text,self.Props.Font,self.Props.Position,self.Props.Size,self.Props.TextColor);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Renderable":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Properties":{
+            "Color":{CanSet:true,CanGet:true,Value:new Color(255,255,255)},
+            "RenderPriority":{CanSet:true,CanGet:true,Value:0},
+            "OnRender":{
+            	CanSet:false,CanGet:true,
+            	Value:function(self,Delta){
+                	
+                },
+            },
+        },
+        "Connections":[],
+    },
+    "Matrix":{
+    	"SuperClasses":["Renderable"],
+        "CanCreate":false,
+        "Properties":{
+        	"Position":{CanSet:true,CanGet:true,Value:new Vector2(0,0)},
+        	"Size":{CanSet:true,CanGet:true,Value:new Vector2(1,1)},
+        	"Rotation":{CanSet:true,CanGet:true,Value:0},
+            "FrontVector":{CanSet:false,CanGet:true,Value:undefined,OnGet:function(self,Name){let A=Math.rad(self.Props.Rotation);return new Vector2(-Math.cos(A),-Math.sin(A))}},
+            "RightVector":{CanSet:false,CanGet:true,Value:undefined,OnGet:function(self,Name){let A=Math.rad(self.Props.Rotation+90);return new Vector2(-Math.cos(A),-Math.sin(A))}},
+        },
+        "Connections":[],
+    },
+    "Block":{
+    	"SuperClasses":["Matrix"],
+        "CanCreate":true,
+        "Properties":{
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	let Screen = GameInstance.Proxy.Screen;
+                    Screen.Rect(self.Props.Position,self.Props.Size,self.Props.Color,self.Props.Rotation);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Circle":{
+    	"SuperClasses":["Matrix"],
+        "CanCreate":true,
+        "Properties":{
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	let Screen = GameInstance.Proxy.Screen;
+                    Screen.Circle(self.Props.Position,(self.Props.Size.x+self.Props.Size.y)/2,self.Props.Color);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Line":{
+    	"SuperClasses":["Renderable"],
+        "CanCreate":true,
+        "Created":function(self){
+        	self.Props.RenderPriority=Enums.RenderPriority.Block;
+        },
+        "Properties":{
+        	"P0":{CanSet:true,CanGet:true,Value:new Vector2()},
+            "P1":{CanSet:true,CanGet:true,Value:new Vector2()},
+            "Width":{CanSet:true,CanGet:true,Value:1},
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	let Screen = GameInstance.Proxy.Screen;
+                    Screen.Line(self.Props.P0,self.Props.P1,self.Props.Color,self.Props.Width);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Trail":{
+    	"SuperClasses":["Renderable"],
+        "CanCreate":true,
+        "Created":function(self){
+        	self.Props.Changed.Connect(function(s,n,v){
+            	if(n!="Parent")return;
+                if(v&&v.IsA("Matrix")){
+                	self.Props.LP=v.Position;
+                }
+            });
+            if(self.Props.Parent&&self.Props.Parent.IsA("Matrix")){
+                self.Props.LP=self.Props.Parent.Position;
+            }
+        },
+        "Properties":{
+        	"Width":{CanSet:true,CanGet:true,Value:1},
+            "LP":{CanSet:false,CanGet:false,Value:new Vector2()},
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	if(!self.Props.Parent){return}
+                    if(!self.Props.Parent.IsA("Matrix")){return}
+                    let Parent = self.Props.Parent;
+                	let Screen = GameInstance.Proxy.Screen;
+                    let P = self.Props.LP;
+                    self.Props.LP=Parent.Position;
+                    let P0 = Parent.Position;
+                    let P1 = P0.Add(P.Sub(P0).Mul(2));
+                    Screen.Line(P0,P1,self.Props.Color,self.Props.Width);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Light":{
+    	"SuperClasses":["Renderable"],
+        "CanCreate":true,
+        "Created":function(self){
+        	self.Props.RenderPriority = Enums.RenderPriority.Light;
+        },
+        "Properties":{
+        	"Range":{CanSet:true,CanGet:true,Value:5},
+            "Brightness":{CanSet:true,CanGet:true,Value:1},
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self){
+                	if(!self.Props.Parent){return}
+                    if(!self.Props.Parent.IsA("Matrix")){return}
+                    let Parent = self.Props.Parent;
+                	let Screen = GameInstance.Proxy.Screen;
+                    let c = self.Props.Color;
+                    let b = self.Props.Brightness
+                    let C = new Color(c.r*b,c.g*b,c.b*b,0.5);
+                    Screen.Circle(Parent.Position,self.Props.Range,C);
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Particle":{
+    	"SuperClasses":["Matrix"],
+        "CanCreate":true,
+        "Created":function(self){
+        	self.Props.RenderPriority = Enums.RenderPriority.Particle;
+        },
+        "Properties":{
+        	"Rate":{CanSet:true,CanGet:true,Value:0.3},
+            "Type":{CanSet:true,CanGet:true,Value:0},
+            "Speed":{CanSet:true,CanGet:true,Value:[0.1,0.3]},
+            "Rotation":{CanSet:true,CanGet:true,Value:[0,360]},
+            "RotationSpeed":{CanSet:true,CanGet:true,Value:[5,10]},
+            "Lifetime":{CanSet:true,CanGet:true,Value:1},
+            "Colors":{CanSet:true,CanGet:true,Value:[new Color(),new Color()]},
+            "Sizes":{CanSet:true,CanGet:true,Value:[new Vector2(1,1),new Vector2(0,0)]},
+            "T":{CanSet:true,CanGet:false,Value:0},
+            "SetRotation":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,a,b){
+                	if(b===undefined)b=a;
+                	self.Props.Rotation[0]=a;
+                    self.Props.Rotation[1]=b;
+                }
+            },
+            "SetRotationSpeed":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,a,b){
+                	if(b===undefined)b=a;
+                	self.Props.RotationSpeed[0]=a;
+                    self.Props.RotationSpeed[1]=b;
+                }
+            },
+            "SetSpeed":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,a,b){
+                	if(b===undefined)b=a;
+                	self.Props.Speed[0]=a;
+                    self.Props.Speed[1]=b;
+                }
+            },
+            "SetColors":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,a,b){
+                	if(b===undefined)b=a;
+                	self.Props.Colors[0]=a;
+                    self.Props.Colors[1]=b;
+                }
+            },
+            "SetSizes":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,a,b){
+                	if(b===undefined)b=a;
+                	self.Props.Sizes[0]=a;
+                    self.Props.Sizes[1]=b;
+                }
+            },
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,d){
+                	if(!self.Props.Parent){return}
+                    if(!self.Props.Parent.IsA("Matrix")){return}
+                    let Parent = self.Props.Parent;
+                	let Screen = GameInstance.Proxy.Screen;
+                    self.Props.Position = Parent.Position;
+                    let t = self.Props.Type;
+                    self.Props.T+=d;
+                    while(self.Props.T>self.Props.Rate){
+                    	self.Props.T-=self.Props.Rate;
+                        NewInstance("ParticleItem",{
+                        	Parent:self.Proxy,
+                        	Colors:self.Props.Colors,
+                        	Type:t,
+                        	Speed:RandomNumber(self.Props.Speed[0],self.Props.Speed[1]),
+                        	Sizes:self.Props.Sizes,
+                        	Lifetime:self.Props.Lifetime,
+                        	Position:self.Props.Position,
+                        	Velocity:AngleToVector(RandomNumber(0,160)),
+                        	Rotation:RandomNumber(self.Props.Rotation[0],self.Props.Rotation[1]),
+                        	RotationSpeed:RandomNumber(self.Props.RotationSpeed[0],self.Props.RotationSpeed[1]),
+                   		});
+                    }
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "ParticleItem":{
+    	"SuperClasses":["Matrix"],
+        "CanCreate":false,
+        "Created":function(self){
+        	self.Props.RenderPriority = Enums.RenderPriority.Particle;
+        },
+        "Properties":{
+            "Type":{CanSet:true,CanGet:true,Value:0},
+            "Speed":{CanSet:true,CanGet:true,Value:0},
+            "Lifetime":{CanSet:true,CanGet:true,Value:1},
+            "Life":{CanSet:true,CanGet:true,Value:0},
+            "RotationSpeed":{CanSet:true,CanGet:true,Value:0},
+            "Rotation":{CanSet:true,CanGet:true,Value:0},
+            "Velocity":{CanSet:true,CanGet:true,Value:new Vector2()},
+            "Colors":{CanSet:true,CanGet:true,Value:[new Color(),new Color()]},
+            "Sizes":{CanSet:true,CanGet:true,Value:[new Vector2(),new Vector2()]},
+        	"OnRender":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,d){
+                	if(!self.Props.Parent){return}
+                    if(!self.Props.Parent.IsA("Particle")){return}
+                    if(self.Props.Life>=self.Props.Lifetime){
+                    	return self.Props.Delete();
+                    }
+                    let Parent = self.Props.Parent;
+                	let Screen = GameInstance.Proxy.Screen;
+                    let t = self.Props.Type;
+                    let cs = self.Props.Colors;
+                    let T = self.Props.Life/self.Props.Lifetime;
+                    self.Props.Life+=d;
+                    self.Props.Rotation+=self.Props.RotationSpeed;
+                    self.Props.Color=self.Props.Colors[0].Lerp(self.Props.Colors[1],T);
+                    self.Props.Position=self.Props.Position.Add(self.Props.Velocity.Mul(self.Props.Speed));
+                    self.Props.Size=self.Props.Sizes[0].Lerp(self.Props.Sizes[1],T);
+                    if(t==Enums.ParticleType.Block){
+                    	Screen.Rect(self.Props.Position,self.Props.Size,self.Props.Color,self.Props.Rotation);
+                    }else if(t==Enums.ParticleType.Circle){
+                    	Screen.Circle(self.Props.Position,Math.abs((self.Props.Size.x+self.Props.Size.y)/2),self.Props.Color);
+                    }
+                }
+            },
+        },
+        "Connections":[],
+    },
+    "Camera":{
+    	"SuperClasses":["Instance"],
+        "CanCreate":false,
+        "Properties":{
+        	"Position":{CanSet:true,CanGet:true,Value:new Vector2(0,0)},
+            "Move":{
+            	CanSet:false,CanGet:true,
+                Value:function(self,X,Y){
+                	self.Props.Position.x+=X;
+                    self.Props.Position.y+=Y;
+                }
+            },
+        },
+        "Connections":[],
+    },
+}
+
+//{{ Connection }}\\
+
+class ConnectionBase {
+	constructor(Signal,Callback){
+    	this.__Signal = Signal;
+        this.__Callback = Callback;
+    }
+    Disconnect(){
+    	if(this.__Signal){
+        	let Signal = this.__Signal;
+            this.__Signal = undefined;
+            let Connections = Signal.__Connections;
+            if(Connections.includes(this)){
+            	this.__Callback = undefined;
+            	Connections.splice(Connections.indexOf(this),1);
+            }
+        }
+    }
+    async Fire(...Arguments){
+    	this.__Callback(this,...Arguments);
+    }
+    toString(){
+    	return `${this.__Signal.__Name} Connection`;
+    }
+}
+
+class SignalBase {
+	constructor(Name="Base"){
+    	this.__Name = Name;
+        this.__Connections = [];
+    }
+    Connect(Callback){
+    	let Connection = new ConnectionBase(this,Callback);
+    	this.__Connections.push(Connection);
+        return Connection;
+    }
+    Fire(...Arguments){
+    	for(let Connection of this.__Connections){
+        	Connection.Fire(...Arguments);
+        }
+    }
+    DisconnectAll(){
+    	for(let Connection of [...this.__Connections]){
+        	Connection.Disconnect();
+        }
+    }
+    toString(){
+    	return `${this.__Name} Signal`;
+    }
+}
+
+//{{ Instance Methods }}\\
+
+function GetSuperClasses(ClassName,Classes=[]){
+	let Instance = Instances[ClassName];
+    Classes.push(ClassName);
+    for(let Class of Instance.SuperClasses){
+    	GetSuperClasses(Class,Classes);
+    }
+    return Classes;
+}
+
+function GetClassProperties(ClassName,Properties={}){
+	let Instance = Instances[ClassName];
+    for(let Class of Instance.SuperClasses){
+    	GetClassProperties(Class,Properties);
+    }
+    for(let Name in Instance.Properties){
+    	let Value = Instance.Properties[Name];
+        Properties[Name]=Value;
+    }
+    return Properties;
+}
+
+function GetClassConnections(ClassName,Connections=[]){
+	let Instance = Instances[ClassName];
+	for(let Class of Instance.SuperClasses){
+    	GetClassConnections(Class,Connections);
+    }
+    for(let Value of Instance.Connections){
+        if(!Connections.includes(Value)){
+        	Connections.push(Value);
+        }
+    }
+    return Connections
+}
+
+function NewInstance(ClassName,SetProperties={},FrontEnd=false){
+	let Instance = Instances[ClassName];
+    if(!Instance){return}
+    if(!Instance.CanCreate&&FrontEnd){
+    	throw Error(`Cannot create Instance of type "${ClassName}"!`);
+    }
+    let Props={};
+   	let New = {},
+    	ProxyNew = new Proxy(New,{
+        	get:function(self,Name){
+            	return self[Name];
+            },
+            set:function(self,Name,Value){
+            	if(!Props.hasOwnProperty(Name)){return}
+                if(self[Name]!=Value)self.Changed.Fire(Name,Value);
+            	self[Name]=Value;
+            },
+        }),
+    	Properties = GetClassProperties(ClassName),
+        Connections = GetClassConnections(ClassName);
+   	let Firing = {Props:Props,New:New,Proxy:ProxyNew};
+    for(let Name in Properties){
+    	let Property = Properties[Name];
+        let Value = Property.Value;
+        if(typeof Value == "function"){
+        	let New = Value;
+            Value=function(...Arguments){
+            	return New(Firing,...Arguments);
+            }
+        }else if(Value instanceof Array){
+        	Value = [...Value];
+        }else if(Value instanceof Object){
+        	Value = Object(Value);
+        }
+        Props[Name]=Value;
+        let Attachment = {
+        	get:function(){
+            	if(!Property.CanGet){return}
+                if(Property.hasOwnProperty("OnGet")){
+                	return Property.OnGet(Firing,Name);
+                }
+                return Props[Name];
+            },
+            set:function(Value){
+            	if(!Property.CanSet){return}
+                if(Property.hasOwnProperty("OnSet")){
+                	return Property.OnSet(Firing,Name,Value);
+                }
+                return Props[Name]=Value;
+            },
+        	enumerable:Property.CanGet,
+            writeable:Property.CanSet,
+        }
+    	Object.defineProperty(New,Name,Attachment);
+    }
+    for(let Name of Connections){
+    	Props[Name]=new SignalBase(Name);
+    	Object.defineProperty(New,Name,{
+        	get:function(){
+            	return Props[Name];
+            },
+        	enumerable:true,
+            writeable:false,
+            configurable:false,
+        });
+    }
+    for(let Name in SetProperties){
+    	let Value = SetProperties[Name];
+        ProxyNew[Name]=Value;
+    }
+    Props.Name = ClassName;
+    Props.ClassName = ClassName;
+    Object.seal(Props);
+    Object.seal(ProxyNew);
+    Object.seal(New);
+    if(Instance.Created){
+    	Instance.Created(Firing);
+    }
+    if(!FrontEnd){
+    	return Firing;
+    }
+    return ProxyNew;
+}
+
+const InstanceObject = {
+	n:function(ClassName,Properties){
+    	return NewInstance(ClassName,Properties,true);
+    },
+};
+
+const GameInstance = NewInstance("Game");
+const Enums = Object.freeze({
+   	RenderPriority:{
+        Block:200,
+    	Particle:100,
+        Light:300,
+    },
+  	InputType:{
+        None:0,
+        Key:1,
+       	Mouse:2,
+    	MouseMove:3,
+	},
+    ParticleType:{
+    	Block:0,
+        Circle:1,
+    },
+    Font:{
+    	Georgia:"Georgia",
+        Verdana:"Verdana",
+        Arial:"Arial",
+    },
+})
+
+//{{ Language Library }}\\
+
+const GLib = {
+	l:function(...a){
+    	Log(a.join(" "));
+    },
+    warn:function(...a){
+    	Log(`[!]: ${a.join(" ")}`,"#ff6d12")
+    },
+    error:function(a){
+    	throw Error(a);
+    },
+    V:function(...a){return new Vector2(...a)},
+    C:Color,
+    I:InstanceObject,
+    UV:function(...a){return new UIVector(...a)},
+    G:GameInstance.Proxy,
+    W:GameInstance.Proxy.World,
+    E:Enums,
+    M:Math,
+};
+
+//{{ Run Language Code }}\\
+
+function Run(Code){
+	try{
+    	RunCode(Code,GLib);
+    }catch(e){
+    	Log(e.stack,"#ff1338")
+    }
+}
+
+
+let XML = new XMLHttpRequest();
+XML.onreadystatechange=function(){
+	if(XML.readyState==XML.DONE){
+    	Run(XML.response);
+    }
+}
+XML.open("GET","https://fireyauto.github.io/javascript-game/game.singlescript");
+XML.send();
+
+</script>
+</body>
+</html>
