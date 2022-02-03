@@ -109,7 +109,8 @@ b."Parent"=W;
 
 #`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1'){
 	@`Instance` = I.n("Circle",{
-		"Position"=W;
+		"Position"=`Position`;
+		"Parent"=W;
 		"Size"=V('1','1');
 		"Color"=C."RGB"('0.5','0.5','0.5');
 	});
