@@ -105,6 +105,23 @@ b."Parent"=W;
 
 @`LP`=V('0','0');
 
+@`Projectiles`=[];
+
+#`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1'){
+	@`Instance` = I.n("Circle",{
+		"Position"=W;
+		"Size"=V('1','1');
+		"Color"=C."RGB"('0.5','0.5','0.5');
+	});
+	@`Object` = {
+		"Velocity"=`Direction`;
+		"Instance"=`Instance`;
+		"Lifetime"=`Lifetime`;
+		"Time"='0';
+	}
+	`Projectiles`."push"(`Object`);
+}
+
 r."PreRender"."Connect"(#(s,d){
 	@q = V('0','0');
     :<k,v>m{?v.d:Tq=q."Add"(v.m)}
@@ -125,13 +142,26 @@ r."PreRender"."Connect"(#(s,d){
     `UI`."FPS"."Text"="FPS: "+M."nround"('1'/d,'3');
     `UI`."Angle"."Text"="Angle: "+M."nround"(b."Rotation",'3');
     `UI`."Position"."Text"="Position: "+M."nround"(`CP`.X,'3')+","+M."nround"(`CP`.Y,'3');
+    @`Projs`=[*`Projectiles`]
+    :<_,`Projectile`>Projs{
+    	@`Instance` = `Projectile`."Instance";
+	@`Velocity` = `Projectile`."Velocity";
+	`Projectile`."Time"=`Projectile`."Time"+d;
+	?`Projectile`."Time">`Projectile`."Lifetime"{
+		&`Projectiles`[_];
+		>;
+	}
+	`Instance`."Position"=`Instance`."Position"."Add"(`Velocity`);
+    }
 });
 
 i."InputBegan"."Connect"(#(s,o){
-	?o."Type":o."KEY"{
+    ?o."Type":o."KEY"{
     	o."Key"=o."Key"."toLowerCase"();
     	@k=m[o."Key"];
     	?kk.d=T;
+    }|o."Type":o."MOUSE"{
+    	`SpawnProjectile`(b."Position",b."FrontVector");
     }
 });
 
