@@ -107,7 +107,7 @@ b."Parent"=W;
 
 @`Projectiles`=[];
 
-#`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1',`Speed`='1',`Color`=C."RGB"('0.5','0.5','0.5')){
+#`SpawnProjectile`(`Position`,`Direction`,`Lifetime`='1',`Speed`='1',`Color`=C."RGB"('0.5','0.5','0.5','0')){
 	`Direction`=`Direction`."Mul"(`Speed`);
 	@`Instance` = I.n("Circle",{
 		"Position"=`Position`;
@@ -154,7 +154,8 @@ r."PreRender"."Connect"(#(s,d){
 	`Instance`."Position"=`Instance`."Position"."Add"(`Velocity`);
 	`Projectile`."Velocity"=`Projectile`."BaseVelocity"."Lerp"(V('0','0'),`Projectile`."Time"/`Projectile`."Lifetime");
 	@`cl`=`Projectile`."BaseColor";
-	`Instance`."Color"=`Projectile`."BaseColor"."Lerp"(+C(`cl`.r,`cl`.g,`cl`.b,'1'),`Projectile`."Time"/`Projectile`."Lifetime");
+	@`CL`=+C(`cl`.r,`cl`.g,`cl`.b,'1');
+	`Instance`."Color"=`cl`."Lerp"(`CL`,`Projectile`."Time"/`Projectile`."Lifetime");
 	?`Projectile`."Time">`Projectile`."Lifetime"{
 		`Instance`."Delete"();
 		`Projectiles`."splice"(`Projectiles`."indexOf"(`Projectile`),'1');
