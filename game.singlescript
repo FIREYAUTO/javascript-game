@@ -149,6 +149,7 @@ r."PreRender"."Connect"(#(s,d){
 	@`Velocity`=`Projectile`."Velocity";
 	`Projectile`."Time"=`Projectile`."Time"+d;
 	?`Projectile`."Time">`Projectile`."Lifetime"{
+		`Instance`."Delete"();
 		&`Projectiles`[_];
 		>;
 	}
