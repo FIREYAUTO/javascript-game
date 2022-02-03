@@ -1,0 +1,114 @@
+@b = I.n("Block");
+b."Size"=V('2','2');
+b."Position"=V('0','0');
+b."Rotation"='0';
+b."Color"=C."RGB"('1','0','0');
+b."RenderPriority"=E."RenderPriority"."Block";
+b."Parent"=W;
+
+@B=I.n("Block",{
+	"Parent"=W;
+    "Size"=V('2','0.25');
+    "Position"=V('0','0');
+    "Color"=C."RGB"('0','0','1');
+    "RenderPriority"=E."RenderPriority"."Block";
+});
+
+@P=I.n("Particle",{
+	"Parent"=b;
+    "Colors"=[C."RGB"('0.2','0.2','0.2','0'),C."RGB"('1','1','1','0.5')];
+    "Sizes"=[V('2','2'),V('0','0')];
+    "Type"=E."ParticleType"."Block";
+    "Speed"=['0','0'];
+    "Rotation"=['0','0'];
+    "RotationSpeed"=['0','0'];
+    "Rate"='0.2';
+});
+
+@j=I.n("Text",{
+	"Parent"=G."Services"."UI";
+    "Size"=`UV`('1','0','0','1.5');
+    "Position"=`UV`('0','0','0','0');
+    "TextColor"=C."RGB"('1','1','1');
+    "BackgroundColor"=C."RGB"('0','0','0','1');
+    "Text"="FPS: 0";
+    "Font"=E."Font"."Arial";
+});
+
+@c = G."GetCamera"(),
+ r = G."Services"."Render",
+ i = G."Services"."Input",
+ m = {
+ 	w={
+    	d=F;
+        m=V('0','-1');
+    };
+    s={
+    	d=F;
+        m=V('0','1');
+    };
+    a={
+    	d=F;
+        m=V('-1','0');
+    };
+    d={
+    	d=F;
+        m=V('1','0');
+    };
+ };
+
+@Q=V('0','0'),
+ Z=G."Screen"."ASize"."Div"('2');
+ 
+#9(a,b)<a:b|a>b;
+#8(a,b)<a:b|a<b;
+#7(d,1,2){
+	@3=2-1;
+    ?9(d,1)&8(d,2){<d};
+    <(d%3)+1;
+}
+#6(R,D){
+	@d=M."abs"(D-R);
+    ?d>'180'{?D>R{%R+'360'}>%D+'360'};
+    <[R,D];
+}
+
+#L(a,b,t)<('1'-t)*a+t*b;
+
+@`LP`=V('0','0');
+
+r."PreRender"."Connect"(#(s,d){
+	@q = V('0','0');
+    :<k,v>m{?v.d:Tq=q."Add"(v.m)}
+    q=q."Normalize"()."NoNan"();
+    Q=Q."Lerp"(q."Div"('2'),'0.2');
+    b."Position"=b."Position"."Add"(Q);
+    c."Position"=b."Position";
+    @p=i."MousePosition";
+    @D=M."deg"(M."atan2"(Z.y-p.y,Z.x-p.x));
+    @R=b."Rotation";
+    b."Rotation"=7(L(*6(R,D),'0.4'),'0','360');
+    B."Position"=b."Position"."Add"(b."FrontVector"."Mul"('2'));
+    B."Rotation"=b."Rotation";
+    j."Text"="FPS: "+M.`nround`('1'/d,'3');
+    @`CP`=b."Position";
+    @`D2`=M."deg"(M."atan2"(`LP`.y-`CP`.y,`LP`.x-`CP`.x));
+    P."SetRotation"(`D2`);
+    `LP`=`CP`;
+});
+
+i."InputBegan"."Connect"(#(s,o){
+	?o."Type":o."KEY"{
+    	o."Key"=o."Key"."toLowerCase"();
+    	@k=m[o."Key"];
+    	?kk.d=T;
+    }
+});
+
+i."InputEnded"."Connect"(#(s,o){
+	?o."Type":o."KEY"{
+    	o."Key"=o."Key"."toLowerCase"();
+    	@k=m[o."Key"];
+    	?kk.d=F;
+    };
+});
