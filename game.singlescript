@@ -36,6 +36,7 @@ b."Parent"=W;
 		"BackgroundColor"=C."RGB"('0','0','0','1');
 		"Text"="FPS: 0";
 		"Font"=E."Font"."Arial";
+		"BorderSize"='0';
 	});
 	"Angle"=I.n("Text",{
 		"Parent"=`UIE`;
@@ -45,6 +46,7 @@ b."Parent"=W;
 		"BackgroundColor"=C."RGB"('0','0','0','1');
 		"Text"="Angle: 0";
 		"Font"=E."Font"."Arial";
+		"BorderSize"='0';
 	});
 	"Position"=I.n("Text",{
 		"Parent"=`UIE`;
@@ -54,6 +56,7 @@ b."Parent"=W;
 		"BackgroundColor"=C."RGB"('0','0','0','1');
 		"Text"="Position: 0,0";
 		"Font"=E."Font"."Arial";
+		"BorderSize"='0';
 	});
 };
 
