@@ -25,15 +25,37 @@ b."Parent"=W;
     "Rate"='0.2';
 });
 
-@j=I.n("Text",{
-	"Parent"=G."Services"."UI";
-    "Size"=`UV`('1','0','0','1.5');
-    "Position"=`UV`('0','0','0','0');
-    "TextColor"=C."RGB"('1','1','1');
-    "BackgroundColor"=C."RGB"('0','0','0','1');
-    "Text"="FPS: 0";
-    "Font"=E."Font"."Arial";
-});
+@`UIE`=G."Services"."UI";
+
+@`UI`={
+	"FPS"=I.n("Text",{
+		"Parent"=`UIE`;
+		"Size"=`UV`('1','0','0','1.5');
+		"Position"=`UV`('0','0','0','0');
+		"TextColor"=C."RGB"('1','1','1');
+		"BackgroundColor"=C."RGB"('0','0','0','1');
+		"Text"="FPS: 0";
+		"Font"=E."Font"."Arial";
+	});
+	"Angle"=I.n("Text",{
+		"Parent"=`UIE`;
+		"Size"=`UV`('1','0','0','1.5');
+		"Position"=`UV`('0','0','0','1.5');
+		"TextColor"=C."RGB"('1','1','1');
+		"BackgroundColor"=C."RGB"('0','0','0','1');
+		"Text"="Angle: 0";
+		"Font"=E."Font"."Arial";
+	});
+	"Position"=I.n("Text",{
+		"Parent"=`UIE`;
+		"Size"=`UV`('1','0','0','1.5');
+		"Position"=`UV`('0','0','0','3');
+		"TextColor"=C."RGB"('1','1','1');
+		"BackgroundColor"=C."RGB"('0','0','0','1');
+		"Text"="Position: 0,0";
+		"Font"=E."Font"."Arial";
+	});
+};
 
 @c = G."GetCamera"(),
  r = G."Services"."Render",
@@ -90,11 +112,13 @@ r."PreRender"."Connect"(#(s,d){
     b."Rotation"=7(L(*6(R,D),'0.4'),'0','360');
     B."Position"=b."Position"."Add"(b."FrontVector"."Mul"('2'));
     B."Rotation"=b."Rotation";
-    j."Text"="FPS: "+M.`nround`('1'/d,'3');
     @`CP`=b."Position";
     @`D2`=M."deg"(M."atan2"(`LP`.y-`CP`.y,`LP`.x-`CP`.x));
     P."SetRotation"(`D2`);
     `LP`=`CP`;
+    `UI`."FPS"."Text"="FPS: "+M."nround"('1'/d,'3');
+    `UI`."Angle"."Text"="Angle: "+M."nround"(b."Rotation",'3');
+    `UI`."Position"."Text"="Position: "+M."nround"(`CP`.X,'3')+","+M."nround"(`CP`.Y,'3');
 });
 
 i."InputBegan"."Connect"(#(s,o){
