@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<script src="https://fireyauto.github.io/SingleScript/src.js"></script>
+<script src="https://fireyauto.github.io/XBS/src.js"></script>
 <canvas id="screen"></canvas>
 <pre id="output"></pre>
 <script>
@@ -1156,7 +1156,7 @@ function NewInstance(ClassName,SetProperties={},FrontEnd=false){
 }
 
 const InstanceObject = {
-	n:function(ClassName,Properties){
+	new:function(ClassName,Properties){
     	return NewInstance(ClassName,Properties,true);
     },
 };
@@ -1188,7 +1188,7 @@ const Enums = Object.freeze({
 //{{ Language Library }}\\
 
 const GLib = {
-	l:function(...a){
+	log:function(...a){
     	Log(a.join(" "));
     },
     warn:function(...a){
@@ -1197,24 +1197,23 @@ const GLib = {
     error:function(a){
     	throw Error(a);
     },
-    V:function(...a){return new Vector2(...a)},
-    C:Color,
-    I:InstanceObject,
-    UV:function(...a){return new UIVector(...a)},
-    G:GameInstance.Proxy,
-    W:GameInstance.Proxy.World,
-    E:Enums,
-    M:Math,
+    Vector:Vector2,
+    Color:Color,
+    Instance:InstanceObject,
+    ScreenVector:UIVector,
+    Game:GameInstance.Proxy,
+    World:GameInstance.Proxy.World,
+    Enum:Enums,
+    math:Math,
 };
 
 //{{ Run Language Code }}\\
 
 function Run(Code){
-	try{
-    	RunCode(Code,GLib);
-    }catch(e){
-    	Log(e.stack,"#ff1338")
-    }
+	let R = XBS(Code,GLib);
+	if(!R.Success){
+		Log(R.Error,"#ff1338");	
+	}
 }
 
 
@@ -1224,7 +1223,7 @@ XML.onreadystatechange=function(){
     	Run(XML.response);
     }
 }
-XML.open("GET","https://fireyauto.github.io/javascript-game/game.singlescript");
+XML.open("GET","https://fireyauto.github.io/javascript-game/game.xbs");
 XML.send();
 
 </script>
