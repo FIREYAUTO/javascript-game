@@ -106,7 +106,7 @@ func SpawnProjectile(Position,Direction,Lifetime=1,Speed=1,Color=Color.RGB(0.5,0
 		BaseColor=Color,
 		Instance=I,
 		Lifetime=Lifetime,
-		Time=0;
+		Time=0
 	};
 	Projectiles.push(O);
 }
