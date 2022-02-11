@@ -84,7 +84,7 @@ func AngleOverflowCheck(Angle,D){
 	if(Diff>180)
 		if(D>Angle)Angle+=360;
 		else D+=360;
-	return [Angle,D];
+	send [Angle,D];
 }
 
 func Lerp(a,b,t)send (1-t)*a+t*b;
