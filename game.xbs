@@ -111,40 +111,49 @@ func SpawnProjectile(Position,Direction,Lifetime=1,Speed=1,Color=Color.RGB(0.5,0
 	Projectiles.push(O);
 }
 
+set Errored=false;
+
 Render.PreRender.Connect(func(self,Delta){
-	set LerpV = new Vector(0,0);
-	each Inputs as k,v
-		if(v.Down)LerpV=LerpV.Add(v.Direction);
-	LerpV=LerpV.Normalize().NoNan();
-	LerpVector=LerpVector.Lerp(LerpV.Div(2),0.2);
-	Block.Position=Block.Position.Add(LerpVector);
-	Camera.Position=Block.Position;
-	set MP = Input.MousePosition;
-	set Dir = math.deg(math.atan2(ScreenSize.y-MP.y,ScreenSize.x-MP.x));
-	set Rot = B.Rotation;
-	Block.Rotation = AngleCheck(Lerp(*AngleOveflowCheck(Rot,Dir),0.4),0,360);
-	NewBlock.Position=Block.Position.Add(Block.FrontVector.Mul(2));
-	NewBlock.Rotation=Block.Rotation;
-	set CP = Block.Position;
-	set Dir2 = math.deg(math.atan2(LastPosition.y-CP.y,LastPosition.x-CP.x));
-	Particle.SetRotation(Dir2);
-	LastPosition = CP;
-	UIs.FPS.Text = "FPS: "+math.nround(1/Delta,3);
-	UIs.Angle.Text = "Angle: "+math.nround(Block.Rotation,3);
-	UIs.Position.Text = "Position: "+math.nround(CP.x,3)+","+math.nround(CP.y,3);
-	set Projs = [*Projectiles];
-	each Projs as k,Projectile {
-		set Inst = Projectile.Instance;
-		set Vel = Projectile.Velocity;
-		Projectile.Time+=Delta;
-		Inst.Position=Inst.Position.Add(Vel);
-		Projectile.Velocity=Projectile.BaseVelocity.Lerp(new Vector(0,0),Projectile.Time/Projectile.Lifetime);
-		set BCol = Projectile.BaseColor,
-			Col = new Color(BCol.r,BCol.g,BCol.b,1);
-		Instance.Color = BCol.Lerp(Col,Projectile.Time/Projectile.Lifetime);
-		if(Projectile.Time>Projectile.Lifetime){
-			Instance.Delete();
-			Projectiles.splice(Projectiles.indexOf(Projectile),1);
+	try{
+		set LerpV = new Vector(0,0);
+		each Inputs as k,v
+			if(v.Down)LerpV=LerpV.Add(v.Direction);
+		LerpV=LerpV.Normalize().NoNan();
+		LerpVector=LerpVector.Lerp(LerpV.Div(2),0.2);
+		Block.Position=Block.Position.Add(LerpVector);
+		Camera.Position=Block.Position;
+		set MP = Input.MousePosition;
+		set Dir = math.deg(math.atan2(ScreenSize.y-MP.y,ScreenSize.x-MP.x));
+		set Rot = B.Rotation;
+		Block.Rotation = AngleCheck(Lerp(*AngleOveflowCheck(Rot,Dir),0.4),0,360);
+		NewBlock.Position=Block.Position.Add(Block.FrontVector.Mul(2));
+		NewBlock.Rotation=Block.Rotation;
+		set CP = Block.Position;
+		set Dir2 = math.deg(math.atan2(LastPosition.y-CP.y,LastPosition.x-CP.x));
+		Particle.SetRotation(Dir2);
+		LastPosition = CP;
+		UIs.FPS.Text = "FPS: "+math.nround(1/Delta,3);
+		UIs.Angle.Text = "Angle: "+math.nround(Block.Rotation,3);
+		UIs.Position.Text = "Position: "+math.nround(CP.x,3)+","+math.nround(CP.y,3);
+		set Projs = [*Projectiles];
+		each Projs as k,Projectile {
+			set Inst = Projectile.Instance;
+			set Vel = Projectile.Velocity;
+			Projectile.Time+=Delta;
+			Inst.Position=Inst.Position.Add(Vel);
+			Projectile.Velocity=Projectile.BaseVelocity.Lerp(new Vector(0,0),Projectile.Time/Projectile.Lifetime);
+			set BCol = Projectile.BaseColor,
+				Col = new Color(BCol.r,BCol.g,BCol.b,1);
+			Instance.Color = BCol.Lerp(Col,Projectile.Time/Projectile.Lifetime);
+			if(Projectile.Time>Projectile.Lifetime){
+				Inst.Delete();
+				Projectiles.splice(Projectiles.indexOf(Projectile),1);
+			}
+		}
+	}catch e{
+		if(!Errored){
+			warn(e);
+			Errored=true;
 		}
 	}
 });
