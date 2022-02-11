@@ -124,7 +124,7 @@ Render.PreRender.Connect(func(self,Delta){
 		Camera.Position=Block.Position;
 		set MP = Input.MousePosition;
 		set Dir = math.deg(math.atan2(ScreenSize.y-MP.y,ScreenSize.x-MP.x));
-		set Rot = B.Rotation;
+		set Rot = Block.Rotation;
 		Block.Rotation = AngleCheck(Lerp(*AngleOveflowCheck(Rot,Dir),0.4),0,360);
 		NewBlock.Position=Block.Position.Add(Block.FrontVector.Mul(2));
 		NewBlock.Rotation=Block.Rotation;
