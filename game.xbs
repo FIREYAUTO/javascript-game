@@ -1,0 +1,168 @@
+set Block = Instance.new("Block");
+Block.Size = new Vector(2,2);
+Block.Position = new Vector(0,0);
+Block.Rotation = 0;
+Block.Color = Color.RGB(1,0,0);
+Block.RenderPriority = Enum.RenderPriority.Block;
+Block.Parent = World;
+
+set NewBlock = Instance.new("Block",{
+	Parent = World,
+	Size = new Vector(2,0.25),
+	Position = new Vector(0,0),
+	Color = Color.RGB(0,0,1),
+	RenderPriority = Enum.RenderPriority.Block
+});
+
+set Particle = Instance.new("Particle",{
+	Parent = Block,
+	Colors = [Color.RGB(0.2,0.2,0.2,0),Color.RGB(1,1,1,0.5)],
+	Sizes = [new Vector(2,2),new Vector(0,0)],
+	Type = Enum.ParticleType.Block,
+	Speed = [0,0],
+	Rotation = [0,0],
+	RotationSpeed = [0,0],
+	Rate = 0.2
+});
+
+set UI = Game.Services.UI,
+	UIs = {
+		FPS=Instance.new("Text",{
+			Parent = UI,
+			Size = new ScreenVector(1,0,0,1.5),
+			Position = new ScreenVector(0,0,0,0),
+			TextColor = Color.RGB(1,1,1),
+			BackgroundColor = Color.RGB(0,0,0,1),
+			Text = "FPS: 0",
+			Font = Enum.Font.Arial,
+			BorderSize = 0,
+			BorderColor = new Color(0,0,0,1)
+		}),
+		Angle=Instance.new("Text",{
+			Parent = UI,
+			Size = new ScreenVector(1,0,0,1.5),
+			Position = new ScreenVector(0,0,0,1.5),
+			TextColor = Color.RGB(1,1,1),
+			BackgroundColor = Color.RGB(0,0,0,1),
+			Text = "Angle: 0",
+			Font = Enum.Font.Arial,
+			BorderSize = 0,
+			BorderColor = new Color(0,0,0,1)
+		}),
+		Position=Instance.new("Text",{
+			Parent = UI,
+			Size = new ScreenVector(1,0,0,1.5),
+			Position = new ScreenVector(0,0,0,3),
+			TextColor = Color.RGB(1,1,1),
+			BackgroundColor = Color.RGB(0,0,0,1),
+			Text = "Position: 0,0",
+			Font = Enum.Font.Arial,
+			BorderSize = 0,
+			BorderColor = new Color(0,0,0,1)
+		})
+	},
+	Camera = Game.GetCamera(),
+	Render = Game.Services.Render,
+	Input = Game.Services.Input,
+	Inputs = {
+		w={Down=false,Direction=new Vector(0,-1)},
+		s={Down=false,Direction=new Vector(0,1)},
+		a={Down=false,Direction=new Vector(-1,0)},
+		d={Down=false,Direction=new Vector(1,0)}
+	},
+	LerpVector = new Vector(0,0),
+	ScreenSize = Game.Screen.ASize.Div(2);
+	
+func AngleCheck(Angle,Min=0,Max=360){
+	set Diff = Max-Min;
+	if(Angle>=Min&Angle<=Max)send Angle;
+	send (Angle%Diff)+Min;
+}
+
+func AngleOverflowCheck(Angle,D){
+	set Diff = math.abs(D-Angle);
+	if(Diff>180)
+		if(D>Angle)Angle+=360;
+		else D+=360;
+	return [Angle,D];
+}
+
+func Lerp(a,b,t)send (1-t)*a+t*b;
+
+set LastPosition = new Vector(0,0),
+	Projectiles = [];
+	
+func SpawnProjectile(Position,Direction,Lifetime=1,Speed=1,Color=Color.RGB(0.5,0.5,0.5,0)){
+	Direction = Direction.Mul(Speed);
+	set I = Instance.new("Circle",{
+		Position=Position,
+		Parent=World,
+		Size=new Vector(1,1),
+		Color=Color
+	});
+	set O = {
+		Velocity=Direction,
+		BaseVelocity=Direction,
+		BaseColor=Color,
+		Instance=I,
+		Lifetime=Lifetime,
+		Time=0;
+	};
+	Projectiles.push(O);
+}
+
+Render.PreRender.Connect(func(self,Delta){
+	set LerpV = new Vector(0,0);
+	each Inputs as k,v
+		if(v.Down)LerpV=LerpV.Add(v.Direction);
+	LerpV=LerpV.Normalize().NoNan();
+	LerpVector=LerpVector.Lerp(LerpV.Div(2),0.2);
+	Block.Position=Block.Position.Add(LerpVector);
+	Camera.Position=Block.Position;
+	set MP = Input.MousePosition;
+	set Dir = math.deg(math.atan2(ScreenSize.y-MP.y,ScreenSize.x-MP.x));
+	set Rot = B.Rotation;
+	Block.Rotation = AngleCheck(Lerp(*AngleOveflowCheck(Rot,Dir),0.4),0,360);
+	NewBlock.Position=Block.Position.Add(Block.FrontVector.Mul(2));
+	NewBlock.Rotation=Block.Rotation;
+	set CP = Block.Position;
+	set Dir2 = math.deg(math.atan2(LastPosition.y-CP.y,LastPosition.x-CP.x));
+	Particle.SetRotation(Dir2);
+	LastPosition = CP;
+	UIs.FPS.Text = "FPS: "+math.nround(1/Delta,3);
+	UIs.Angle.Text = "Angle: "+math.nround(Block.Rotation,3);
+	UIs.Position.Text = "Position: "+math.nround(CP.x,3)+","+math.nround(CP.y,3);
+	set Projs = [*Projectiles];
+	each Projs as k,Projectile {
+		set Inst = Projectile.Instance;
+		set Vel = Projectile.Velocity;
+		Projectile.Time+=Delta;
+		Inst.Position=Inst.Position.Add(Vel);
+		Projectile.Velocity=Projectile.BaseVelocity.Lerp(new Vector(0,0),Projectile.Time/Projectile.Lifetime);
+		set BCol = Projectile.BaseColor,
+			Col = new Color(BCol.r,BCol.g,BCol.b,1);
+		Instance.Color = BCol.Lerp(Col,Projectile.Time/Projectile.Lifetime);
+		if(Projectile.Time>Projectile.Lifetime){
+			Instance.Delete();
+			Projectiles.splice(Projectiles.indexOf(Projectile),1);
+		}
+	}
+});
+
+Input.InputBegan.Connect(func(self,Obj){
+	if(Obj.Type == Obj.KEY){
+		Obj.Key = Obj.Key.toLowerCase();
+		set KO = Inputs[Obj.Key];
+		if(KO)KO.Down=true;
+	}elif(Obj.Type == Obj.MOUSE){
+		SpawnProjectile(Block.Position,Block.FrontVector,1,1,Color.RGB(0.5,0.5,0.5,0));
+	}
+});
+
+Input.InputEnded.Connect(func(self,Obj){
+	if(Obj.Type == Obj.KEY){
+		Obj.Key = Obj.Key.toLowerCase();
+		set KO = Inputs[Obj.Key];
+		if(KO)KO.Down=false;
+	}
+});
