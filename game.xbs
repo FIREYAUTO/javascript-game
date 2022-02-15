@@ -144,7 +144,7 @@ Render.PreRender.Connect(func(self,Delta){
 			Projectile.Velocity=Projectile.BaseVelocity.Lerp(new Vector(0,0),Projectile.Time/Projectile.Lifetime);
 			set BCol = Projectile.BaseColor,
 				Col = new Color(BCol.r,BCol.g,BCol.b,1);
-			Instance.Color = BCol.Lerp(Col,Projectile.Time/Projectile.Lifetime);
+			Inst.Color = BCol.Lerp(Col,Projectile.Time/Projectile.Lifetime);
 			if(Projectile.Time>Projectile.Lifetime){
 				Inst.Delete();
 				Projectiles.splice(Projectiles.indexOf(Projectile),1);
