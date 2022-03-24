@@ -13,6 +13,8 @@ const Images = {
     "Furnace":"furnace.png",
     "FurnaceLit":"furnace_lit.png",
     "Ore1":"ore1.png",
+    "Ore2":"ore2.png",
+    "Ore3":"ore3.png",
     "Decay1":"decay_1.png",
     "Decay2":"decay_2.png",
     "Decay3":"decay_3.png",
@@ -32,9 +34,9 @@ async function LoadImages(Table){
         Table[k] = img;
         img.onload=function(){
         	Loaded++;
-            LoadedImages[k]=new FImage(Table[k]);
             img.onload=null;
         }
+        LoadedImages[k]=new FImage(Table[k]);
         img.src = RawImageURL+v;
     }
     return new Promise(r=>{
@@ -231,10 +233,14 @@ class Renderer {
         this.UI=[];
         const self = this;
         window.addEventListener("keydown",e=>{
-        	self.KeysDown[e.key]=true;
+        	let k=e.key||e.which;
+        	if(!e.metaKey)k=k.toLowerCase();
+        	self.KeysDown[k]=true;
         });
         window.addEventListener("keyup",e=>{
-        	self.KeysDown[e.key]=false;
+        	let k=e.key||e.which;
+        	if(!e.metaKey)k=k.toLowerCase();
+        	self.KeysDown[k]=false;
         });
     }
     NewRenderLayer(Name,Priority){
@@ -309,8 +315,8 @@ class Renderer {
         this.Context.strokeRect(...this.GetPS(Size));
         this.Context.setTransform(1,0,0,1,0,0);
     }
-    DrawUIImage(Image,Size,Position,Transparency=0,Angle=0,WorldSpace=false,AP){
-    	let TS = this.TileSize;
+    DrawUIImage(PImage,Size,Position,Transparency=0,Angle=0,WorldSpace=false,AP){
+        let TS = this.TileSize;
     	Size=this.ConvertUIVector(Size);
         Position=this.ConvertUIVector(Position);
         this.Context.globalAlpha=1-Transparency;
@@ -318,7 +324,7 @@ class Renderer {
         if(WorldSpace===true)P=this.GetPositionOnScreen(Position,Size);
         this.Context.translate(P.x,P.y);
     	this.Context.rotate(Math.rad(Angle));
-        this.Context.drawImage(LoadedImages[Image].Source,(-Size.x*AP.x)*TS,(-Size.y*AP.y)*TS,Size.x*TS,Size.y*TS);
+        this.Context.drawImage(LoadedImages[PImage].Source,(-Size.x*AP.x)*TS,(-Size.y*AP.y)*TS,Size.x*TS,Size.y*TS);
         this.Context.setTransform(1,0,0,1,0,0);
     }
     DrawUIRect(Size,Position,Color,Angle=0,WorldSpace=false,AP){
@@ -709,15 +715,19 @@ class BaseMouse extends Listener {
         	self.fire("move",i);
         });
         window.addEventListener("keydown",e=>{
+        	let k=e.key||e.which;
+        	if(!e.metaKey)k=k.toLowerCase();
         	if(e.repeat)return;
         	let i=new Input(2,{
-            	Key:e.key||e.which
+            	Key:k
             });
             self.fire("keydown",i);
         });
         window.addEventListener("keyup",e=>{
+        	let k=e.key||e.which;
+        	if(!e.metaKey)k=k.toLowerCase();
         	let i=new Input(2,{
-            	Key:e.key||e.which
+            	Key:k
             });
             self.fire("keyup",i);
         });
@@ -733,6 +743,55 @@ function time(){
 }
 
 Math.clamp=(x,m,M)=>Math.min(Math.max(x,m),M);
+
+//{{ Noise Library (Not Mine, https://github.com/joeiddon/perlin/blob/master/perlin.js) }}\\
+
+let perlin = {
+    rand_vect: function(){
+        let theta = Math.random() * 2 * Math.PI;
+        return {x: Math.cos(theta), y: Math.sin(theta)};
+    },
+    dot_prod_grid: function(x, y, vx, vy){
+        let g_vect;
+        let d_vect = {x: x - vx, y: y - vy};
+        if (this.gradients[[vx,vy]]){
+            g_vect = this.gradients[[vx,vy]];
+        } else {
+            g_vect = this.rand_vect();
+            this.gradients[[vx, vy]] = g_vect;
+        }
+        return d_vect.x * g_vect.x + d_vect.y * g_vect.y;
+    },
+    smootherstep: function(x){
+        return 6*x**5 - 15*x**4 + 10*x**3;
+    },
+    interp: function(x, a, b){
+        return a + this.smootherstep(x) * (b-a);
+    },
+    seed: function(){
+        this.gradients = {};
+        this.memory = {};
+    },
+    get: function(x, y) {
+        if (this.memory.hasOwnProperty([x,y]))
+            return this.memory[[x,y]];
+        let xf = Math.floor(x);
+        let yf = Math.floor(y);
+        //interpolate
+        let tl = this.dot_prod_grid(x, y, xf,   yf);
+        let tr = this.dot_prod_grid(x, y, xf+1, yf);
+        let bl = this.dot_prod_grid(x, y, xf,   yf+1);
+        let br = this.dot_prod_grid(x, y, xf+1, yf+1);
+        let xt = this.interp(x-xf, tl, tr);
+        let xb = this.interp(x-xf, bl, br);
+        let v = this.interp(y-yf, xt, xb);
+        this.memory[[x,y]] = v;
+        return v;
+    }
+}
+perlin.seed();
+
+//{{ Game Code }}\\
 
 async function Main(){
 	try{
@@ -788,6 +847,10 @@ async function Main(){
     Player.ToInventory=function(Name,Amount=1){
     	if(!this.Inventory[Name])this.Inventory[Name]=0;
         this.Inventory[Name]+=Amount;
+        let Keys = Object.keys(this.Inventory);
+        if(Keys[this.SelectedItem]===Name){
+        	SelectedText.Text=this.Inventory[Name];
+        }
     }
     Player.RemoveFromInventory=function(Name,Amount=1){
     	if(!this.Inventory[Name])this.Inventory[Name]=0;
@@ -795,6 +858,11 @@ async function Main(){
         if(this.Inventory[Name]<=0){
         	delete this.Inventory[Name];
         	Player.ChangeSelectedItem(1);
+            return
+        }
+        let Keys = Object.keys(this.Inventory);
+        if(Keys[this.SelectedItem]===Name){
+        	SelectedText.Text=this.Inventory[Name];
         }
     }
     Player.HasInventoryAmount=function(Name,Amount=1){
@@ -853,15 +921,13 @@ async function Main(){
             },
         },
         "Ore1":{
-        	Strength:6,
-            MinePower:1,
-            Drops:true,
-            OnMine:function(self){
-            	
-            },
-            Properties:{
-            
-            },
+        	Strength:6,MinePower:1,Drops:true,OnMine:function(self){},Properties:{}
+        },
+        "Ore2":{
+        	Strength:14,MinePower:1,Drops:true,OnMine:function(self){},Properties:{}
+        },
+        "Ore3":{
+        	Strength:32,MinePower:1,Drops:true,OnMine:function(self){},Properties:{}
         },
         "Furnace":{
         	Strength:3,
@@ -928,7 +994,7 @@ async function Main(){
         return TileData[Tile.Name];
     }
     
-    function SpawnTile(Name,Position){
+    function SpawnTile(Name,Position,ToLayer=true){
     	const t = new Tile(Name);
         t.SetSize(1,1);
         t.Name=Name;
@@ -943,7 +1009,7 @@ async function Main(){
                         }
                     }
                 	let v = Math.floor((1-(t.Health-1)/(Data.Strength-1))*4)+1;
-                    Render.DrawImage(DecayTiles[v],t.Size,t.Position,t.Rotation,0.25);
+                    Render.DrawImage(DecayTiles[Math.clamp(v,1,5)],t.Size,t.Position,t.Rotation,0.25);
                 }
             }
             for(let k in Data.Properties)
@@ -951,6 +1017,8 @@ async function Main(){
         }
         t.Position=Position;
         Render.ToRenderLayer("Tile",t);
+        t.Render=Render;
+        return t;
     }
     
     //{{ Tile Loading }}\\
@@ -969,22 +1037,72 @@ async function Main(){
         3:"Furnace",
         4:"FurnaceLit",
     };
-    const Tiles = [
-    	[0,1,0,2,0,3,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    ]
-    for(let ny in Tiles){
-    	let y=Tiles[ny];
-        ny=+ny;
-        for(let nx in y){
-        	let x=y[nx];
-            nx=+nx;
-            if(x==0)continue;
-            SpawnTile(TileIds[x],new Vector(nx,ny));
-        }
-    }
+    const Chunks={
+    	__Loaded:[],
+        __Generated:[],
+        __CP:new Vector(1000,1000),
+        __ChunkSize:16,
+        __GenTiles:["Wall","Ore1","Ore2","Ore3"],
+        ChunkPosition:function(nx,ny){
+        	return new Vector(Math.round(nx/this.__ChunkSize)-0.5,Math.round(ny/this.__ChunkSize)-0.5);
+        },
+        ToPosition:function(CP,OP){
+        	return CP.Mul(this.__ChunkSize).Add(OP||0);
+        },
+        GetChunk(CP){
+        	let CY = this.__Generated[CP.y];
+            if(!CY)return;
+            return CY[CP.x];
+        },
+        GetTile:function(ax,ay){
+        	let GT=this.__GenTiles;
+            let d = 4;
+            let nmb = perlin.get(ax/d,ay/d);
+            //nmb=0.5+(0.5*nmb);
+            let ch=1;
+            if(nmb<=0){
+            	return GT[0];
+            }else{
+            	let GL=GT.length;
+                //nmb*=2;
+                nmb*=GL;
+                //document.write(nmb,"<br>");
+                return GT[Math.clamp(Math.floor(nmb+1),1,GL-1)];
+            }
+        },
+        GenerateTiles:function(CP){
+            let AP = this.ToPosition(CP);
+            for(let y=0;y<=this.__ChunkSize-1;y++){
+            	let ay=AP.y+y;
+            	for(let x=0;x<=this.__ChunkSize-1;x++){
+                	let ax=AP.x+x;
+                	SpawnTile(this.GetTile(ax,ay),new Vector(ax,ay));
+                }
+            }
+        },
+        Generate:function(CP){
+            this.GenerateTiles(CP);
+        },
+        Load:function(CP){
+        	this.Generate(CP);
+        },
+        LoadNear:function(CP){
+        	if(!this.__CP.Eqs(CP)){
+            	this.__Loaded=[];
+            	this.__CP=CP;
+                let s=2;
+                for(let y=-s;y<=s;y++){
+                    for(let x=-s;x<=s;x++){
+                    	if(x==0&&y==0)continue;
+                        this.Load(CP.Add(new Vector(x,y)));
+                    }
+                }
+            }
+        },
+    };
+    
+    Chunks.LoadNear(Chunks.ChunkPosition(0,0));
+    SpawnTile("Furnace",new Vector(2,0));
     
     //{{ Mouse Inputs }}\\
     
@@ -1033,7 +1151,6 @@ async function Main(){
     Mouse.on("down",i=>{
     	let Tile = Render.GetRenderableAtPosition(i.Position,["Tile"]);
         if(!Tile){
-        	
         	return;
         }
         if(Tile.OnMouseDown){
@@ -1090,7 +1207,7 @@ async function Main(){
         let Rot = Player.Rotation,
         	Dir = Math.deg(Math.atan2(SSize.y-MousePosition.y,SSize.x-MousePosition.x));
         Player.Rotation=AngleCheck(Math.lerp(...AngleOverflowCheck(Rot,Dir),0.4),0,360);
-        Player.Selected.Position=Player.Position.Add(Player.LookVector.Mul(0.5).Add(Player.RightVector.Mul(0.25)));
+        Player.Selected.Position=Player.Position.Add(Player.LookVector.Mul(0.4).Add(Player.RightVector.Mul(0.25)));
         Player.Selected.Rotation=Player.Rotation-75;
         let C = Player.GetCollisions();
         for(let v of C){
@@ -1098,6 +1215,7 @@ async function Main(){
             	v.OnTouch(Player);
             }
         }
+        //Chunks.LoadNear(Chunks.ChunkPosition(Player.Position.x,Player.Position.y));
     }
     Player.OnRender=function(){
     	let Tile = Render.GetRenderableAtPosition(MousePosition,["Tile"]);
