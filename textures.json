@@ -1,0 +1,22 @@
+{
+	"Path":"https://fireyauto.github.io/javascript-game/textures/",
+	"Textures":{
+		"Wall":"wall.png",
+		"Player":"player.png",
+		"Furnace":"furnace.png",
+		"FurnaceLit":"furnace_lit.png",
+		"Ore1":"ore1.png",
+		"Ore2":"ore2.png",
+		"Ore3":"ore3.png",
+		"Decay1":"decay_1.png",
+		"Decay2":"decay_2.png",
+		"Decay3":"decay_3.png",
+		"Decay4":"decay_4.png",
+		"Decay5":"decay_5.png",
+		"SmeltedOre1":"smelted_ore1.png",
+		"Log":"log.png",
+		"Pickaxe1":"pickaxe1.png",
+		"Stick":"stick.png",
+		"Tree":"tree.png"
+	}
+}
