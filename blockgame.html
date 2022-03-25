@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<style>
+			#screen {
+				background:#000000;	
+			}
+		</style>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+		<script src="globals.js"></script>
+	</head>
+	<body>
+		<canvas id="screen"></canvas>
+		<script>
+			
+			function LoadScript(Source){
+				const self = LoadScript;
+				if(!self.Scripts)
+					Object.assign(self,{
+						Scripts:[],
+						Index:-1,
+						Loading:false,
+						Container:document.getElementsByTagName("head")[0],
+						Next:function(){
+							if(self.Loading)return;
+							self.Loading=true;
+							let Item =  self.Scripts[++self.Index],
+								Script = document.createElement("script");
+							Script.type="text/javascript",
+							Script.src=Item.Source,
+							Script.onload=function(){
+								self.Loading=false;
+								if(self.Index<self.Scripts.length-1)self.Next();
+								Item.Resolve();
+							};
+							self.Container.appendChild(Script);
+						}
+					});
+				if(Source){
+					let Found = self.Scripts.find(Item=>Item.Source===Source);
+					if(Found)return Found.Promise;
+					let Item = {
+						Source:Source;
+					};
+					Item.Promise = new Promise(Resolve=>{Item.Resolve=Resolve});
+					self.Scripts.push(Item);
+					self.Next();
+					return Item.Promise;
+				}
+			}
+			
+			window.addEventListener("load",()=>{
+				const Scripts = [
+					"engine.js",
+					"tiles.js",
+					"game.js",
+				];
+				Scripts.forEach(LoadScript);
+			});
+			
+		</script>
+	</body>
+</html>
