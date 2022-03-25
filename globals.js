@@ -125,6 +125,7 @@ class BaseVector {
 	Ceil(){return this._mathOp(this,(a,b)=>Math.ceil(a))}
 	Round(){return this._mathOp(this,(a,b)=>Math.round(a))}
 	toString(){return this._MathProperties.map(x=>this[x]).join(",")}
+	ToArray(){return this._MathProperties.map(x=>this[x])}
 }
 
 class Vector extends BaseVector {
