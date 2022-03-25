@@ -116,10 +116,8 @@ class _Screen {
 	IsColliding(R1,R2,P,S){
 		S=S||R1.Size,
 		P=(P||R1.Position).Add(S.Div(2));
-		let ES=R2.Size,
-		    EP=R2.Position;
-		if(R2 instanceof _Renderable)
-			EP=EP.Add(S.Sub(ES.Div(2)));
+		let ES=R2.Size,EP=R2.Position;
+		if(R2 instanceof _Renderable)EP=EP.Add(S.Sub(ES.Div(2)));
 		let l1=P,r1=P.Add(S),l2=EP,r2=EP.Add(ES);
 		if(l1.x==r1.x||l1.y==r1.y||l2.x==r2.x||l2.y==r2.y)return false;
 		if(l1.x>=r2.x||l2.x>=r1.x)return false;
@@ -135,7 +133,7 @@ class _Screen {
 		this.Context.clearRect(0,0,this.Screen.width,this.Screen.height);
 	}
 	DrawRenderable(R){
-			
+		this.DrawImage(R.Image,this.GetRenderPosition(R.Position,R.Size),R.Size.Mul(this.TileSize),R.Rotation,R.PivotPoint,R.Transparency);	
 	}
 	Render(){
 		this.ClearFrame();
@@ -150,11 +148,40 @@ class _Screen {
 		}
 		this.UIRender();
 	}
+	DrawUIElement(Element){
+		let Position = Element.Position.ToVector().Mul(this.TileSize),
+		    Size = Element.Size.ToVector().Mul(this.TileSize);
+		if(Element.WorldSpace){
+			Position=this.GetRenderPosition(Position,Size);	
+		}
+		if(Element instanceof _UIElement){
+			this.FillRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Color);
+			if(Element.BorderSize>0){
+				this.StrokeRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.BorderColor,Element.BorderSize);
+			}
+		}
+		if(Element instanceof _UIText){
+			this.FillText(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Text,Element.Font,Element.Color,Element.TextScaled,Element.TextSize);
+		}
+		if(Element instanceof _UIImage){
+			this.DrawImage(Element.Image,Position,Size,Element.Rotation,Element.AnchorPoint,Element.Transparency);	
+		}
+	}
 	UIRender(){
-		
+		let Renderer = this.Renderer;
+		for(let Element of Renderer.UI){
+			if((Element.WorldSpace&&!this.IsOnScreen(Element))||!Element.Visible)continue;
+			this.DrawUIElement(Element);
+		}
 	}
 	/*
-	
+            if(e instanceof UIText){
+            	this.DrawUIText(e.Text,e.Font,e.Size,e.Position,e.TextColor,e.Angle,e.TextScaled,e.TextSize,e.WorldSpace,e.AnchorPoint);
+            }
+            if(e instanceof UIImage){
+            	this.DrawUIImage(e.Image,e.Size,e.Position,e.Transparency,e.Angle,e.WorldSpace,e.AnchorPoint);
+            }
+        }
 	*/
 }
 
