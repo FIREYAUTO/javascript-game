@@ -112,9 +112,46 @@ class _Screen {
 			},
 		});
 	}
+	//{{ Collision Detection }}\\
+	IsColliding(R1,R2,P,S){
+		S=S||R1.Size,
+		P=(P||R1.Position).Add(S.Div(2));
+		let ES=R2.Size,
+		    EP=R2.Position;
+		if(R2 instanceof _Renderable)
+			EP=EP.Add(S.Sub(ES.Div(2)));
+		let l1=P,r1=P.Add(S),l2=EP,r2=EP.Add(ES);
+		if(l1.x==r1.x||l1.y==r1.y||l2.x==r2.x||l2.y==r2.y)return false;
+		if(l1.x>=r2.x||l2.x>=r1.x)return false;
+		if(r1.y<=l2.y||r2.y<=l1.y)return false;
+		return true;
+	}
+	IsOnScreen(R){
+		let Renderer = this.Renderer;
+		return this.IsColliding(R,{Position:Renderer.Camera.Position.Sub(this.Size.Div(2)).Sub(1),Size:this.Size.Add(2)});
+	}
 	//{{ Drawing Method }}\\
 	ClearFrame(){
 		this.Context.clearRect(0,0,this.Screen.width,this.Screen.height);
+	}
+	DrawRenderable(R){
+			
+	}
+	Render(){
+		this.ClearFrame();
+		let Renderer = this.Renderer;
+		for(let RenderLayer of Renderer.RawRenderLayers){
+			for(let R of RenderLayer.Layer){
+				if(!this.IsOnScreen(R))continue;
+				this.DrawRenderable(R);
+				if(R.OnRender)R.OnRender();
+				if(Renderer.Selected===R)this.StrokeRect(R.Position.Mul(this.TileSize),R.Size.Mul(this.TileSize),R.Rotation,"rgba(255,255,255,0.5)",5);
+			}
+		}
+		this.UIRender();
+	}
+	UIRender(){
+		
 	}
 	/*
 	
