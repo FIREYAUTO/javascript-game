@@ -1,4 +1,6 @@
-const BlankVector = new Vector(0,0);
+const BlankVector = new Vector(0,0),
+	  HalfVector = new Vector(0.5,0.5),
+	  FullVector = new Vector(1,1);
 
 //{{ Screen }}\\
 
@@ -24,12 +26,15 @@ class _Screen {
 	GetRenderPosition(Position,Size){
 		return this.GetRawRenderPosition(Position,Size).Mul(this.TileSize);
 	}
-	GetRenderData(Size){
+	GetRenderData(Size,AX=0.5,AY=0.5){
 		let TileSize=this.TileSize;
-		return [(-Size.x/2)*TileSize,(-Size.y/2)*TileSize,Size.x*TileSize,Size.y*TileSize];
+		return [(-Size.x*AX)*TileSize,(-Size.y*AY)*TileSize,Size.x*TileSize,Size.y*TileSize];
 	}
-	GetRawRenderData(Size){
-		return [(-Size.x/2),(-Size.y/2),Size.x,Size.y];
+	GetRawRenderData(Size,AX=0.5,AY=0.5){
+		return [(-Size.x*AX),(-Size.y*AY),Size.x,Size.y];
+	}
+	GetRawRenderData_Position(Size,AX=0.5,AY=0.5){
+		return [(-Size.x*AX),(-Size.y*AY)];
 	}
 	//{{ Data Methods }}\\
 	UVToVector(UV){
@@ -38,7 +43,7 @@ class _Screen {
 	ConvertUV(UV){
 		return UV instanceof UIVector?this.UVToVector(UV):UV;	
 	}
-	//{{ Drawing Methods }}\\
+	//{{ Drawing Components }}\\
 	Translate(Position){
 		this.Context.translate(Position.x,Position.y);	
 	}
@@ -57,30 +62,63 @@ class _Screen {
 		Context[Method](...Arguments);
 		this.ClearTransform();
 	}
-	DrawImage(Image,Position,Size,Angle=0,Transparency=1){
+	DrawImage(Image,Position,Size,Angle=0,AnchorPoint=HalfVector,Transparency=1){
 		this.ContextMethod({
 			Position:Position,
 			Size:Size,
 			Angle:Angle,
 			Method:"drawImage",
-			Arguments:[this.Renderer.LoadedImages[Image],...this.GetRawRenderData(Size)],
+			Arguments:[this.Renderer.LoadedImages[Image],...this.GetRawRenderData(Size,...AnchorPoint.ToArray())],
 			Setters:{
-					globalAlpha:1-Transparency
+					globalAlpha:1-Transparency,
 			},
 		});
 	}
-	FillRect(Position,Size,Color,Angle=0,Transparency=1){
+	FillRect(Position,Size,Angle=0,AnchorPoint=HalfVector,Color){
 		this.ContextMethod({
 			Position:Position,
 			Size:Size,
 			Angle:Angle,
-			Method:"drawImage",
-			Arguments:[this.Renderer.LoadedImages[Image],...this.GetRawRenderData(Size)],
+			Method:"fillRect",
+			Arguments:[...this.GetRawRenderData(Size,...AnchorPoint.ToArray())],
 			Setters:{
-					globalAlpha:1-Transparency
+				fillStyle:Color,
 			},
 		});
 	}
+	StrokeRect(Position,Size,Angle=0,AnchorPoint=HalfVector,Color,Width=1){
+		this.ContextMethod({
+			Position:Position,
+			Size:Size,
+			Angle:Angle,
+			Method:"strokeRect",
+			Arguments:[...this.GetRawRenderData(Size,...AnchorPoint.ToArray())],
+			Setters:{
+				strokeStyle:Color,
+				lineWidth:Width,
+			},
+		});
+	}
+	FillText(Position,Size,Angle,AnchorPoint=HalfVector,Text,Font,Color,TextScaled,TextSize){
+		this.ContextMethod({
+			Position:Position,
+			Size:Size,
+			Angle:Angle,
+			Method:"fillText",
+			Arguments:[Text,...this.GetRawRenderData_Position(Size,...AnchorPoint.ToArray()),Size.x],
+			Setters:{
+				fillSytyle:Color,
+				font:`${TextScaled?Size.y:TextSize}px ${Font}`,
+			},
+		});
+	}
+	//{{ Drawing Method }}\\
+	ClearFrame(){
+		this.Context.clearRect(0,0,this.Screen.width,this.Screen.height);
+	}
+	/*
+	
+	*/
 }
 
 //{{ Renderer }}\\
