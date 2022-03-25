@@ -199,13 +199,13 @@ class _Renderer extends Listener {
 			Camera:undefined,
 			Screen:new _Screen(Id,TileSize,Width,Height,this),
 		});
-		window.addEventListener("keydown",Event=>{
+		this.Screen.Screen.addEventListener("keydown",Event=>{
 			let Key = Event.key||Event.which;
 			if(!Event.metaKey)Key=Key.toLowerCase();
 			self.KeysDown[Key]=true;
 			self.fire("keydown",Key);
 		});
-		window.addEventListener("keyup",Event=>{
+		this.Screen.Screen.addEventListener("keyup",Event=>{
 			let Key = Event.key||Event.which;
 			if(!Event.metaKey)Key=Key.toLowerCase();
 			self.KeysDown[Key]=false;
@@ -315,5 +315,38 @@ class _UIImage {
 			Image:"",
 			ImageTransparency:0,
 		});
+	}
+}
+
+//{{ Mouse }}\\
+
+class _Mouse extends Listener {
+	constructor(Render){
+		super(["down","up","move","rightup","rightdown"]);
+		const self=this;
+		Assign(self,{
+			Render:Render,
+		});
+		Render.Screen.Screen.addEventListener("mousedown",Event=>{
+			let MP = GetMousePosition(Event);
+			let Type = undefined;
+			if(Event.button==0)Type="down";
+			else if(Event.button==2)Type="rightdown";
+			if(!Type)return;
+			self.fire(Type,(new Vector(MP.x,MP.y)).Div(self.Render.Screen.TileSize);
+		});
+		Render.Screen.Screen.addEventListener("mouseup",Event=>{
+			let MP = GetMousePosition(Event);
+			let Type = undefined;
+			if(Event.button==0)Type="up";
+			else if(Event.button==2)Type="rightup";
+			if(!Type)return;
+			self.fire(Type,(new Vector(MP.x,MP.y)).Div(self.Render.Screen.TileSize);
+		});
+		Render.Screen.Screen.addEventListener("mousemove",Event=>{
+			let MP = GetMousePosition(Event);
+			self.fire("move",(new Vector(MP.x,MP.y)).Div(self.Render.Screen.TileSize);
+		});
+		window.addEventListener("contextmenu",Event=>Event.preventDefault());
 	}
 }
