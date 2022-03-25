@@ -161,10 +161,10 @@ class _Screen {
 			}
 		}
 		if(Element instanceof _UIText){
-			this.FillText(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Text,Element.Font,Element.Color,Element.TextScaled,Element.TextSize);
+			this.FillText(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Text,Element.Font,Element.TextColor,Element.TextScaled,Element.TextSize);
 		}
 		if(Element instanceof _UIImage){
-			this.DrawImage(Element.Image,Position,Size,Element.Rotation,Element.AnchorPoint,Element.Transparency);	
+			this.DrawImage(Element.Image,Position,Size,Element.Rotation,Element.AnchorPoint,Element.ImageTransparency);	
 		}
 	}
 	UIRender(){
@@ -227,5 +227,93 @@ class _Renderer extends Listener {
 		if(!(Renderable instanceof _Renderable))return;
 		let Layer = this.RenderLayers[Name];
 		Layer.Layer.splice(Layer.Layer.inddexOf(Renderable),1);
+	}
+}
+
+//{{ Renderable }}\\
+
+class _Renderable {
+	constructor(Render){
+		Assign(this,{
+			Render:Render,
+			Position:new Vector(0,0),
+			PivotPoint:new Vector(0.5,0.5),
+			Size:new Vector(1,1),
+			Image:"",
+			Transparency:0,
+			Rotation:0,
+		});
+	}
+	SetPosition(x=0,y=0){
+		Assign(this.Position,{x,y});
+	}
+	SetSize(x=0,y=0){
+		Assign(this.Size,{x,y});
+	}
+	SetPivotPoint(x=0,y=0){
+		Assign(this.PivotPoint,{x,y});
+	}
+}
+
+//{{ UI Element }}\\
+
+class _UIElement {
+	constructor(Parent,Render){
+		Assign(this,{
+			Render:Render,
+			Color:"rgba(255,255,255,0)",
+			BorderSize:0,
+			BorderColor:"rgba(255,255,255,1)",
+			Position:new Vector(0,0),
+			Size:new Vector(0,0),
+			AnchorPoint:new Vector(0,0),
+			Rotation:0,
+			Children:[],
+		});
+		Render.UI.push(this);
+		if(Parent){
+			this.Parent=Parent;
+			Parent.Children.push(this);
+		}
+	}
+	RemoveParent(){
+		if(this.Parent){
+			this.Parent.Children.splice(this.Parent.Children.indexOf(this),1);
+			this.Parent=undefined;
+		}	
+	}
+	Remove(){
+		if(!this.Render)return;
+		this.Render.UI.splice(this.Render.indexOf(this),1);
+		this.Render=undefined;
+		this.RemoveParent();
+	}
+	SetParent(Parent){
+		this.RemoveParent();
+		this.Parent=Parent;
+		if(Parent)Parent.Children.push(Parent);
+	}
+}
+
+class _UIText {
+	constructor(...a){
+		super(...a);
+		Assign(this,{
+			Text:"",
+			TextSize:14,
+			TextScaled:true,
+			Font:"VT323",
+			TextColor:"rgba(0,0,0,0)",
+		});
+	}
+}
+
+class _UIImage {
+	constructor(...a){
+		super(...a);
+		Assign(this,{
+			Image:"",
+			ImageTransparency:0,
+		});
 	}
 }
