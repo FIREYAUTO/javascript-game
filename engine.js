@@ -148,24 +148,62 @@ class _Screen {
 		}
 		this.UIRender();
 	}
-	DrawUIElement(Element){
-		let Position = Element.Position.ToVector().Mul(this.TileSize),
-		    Size = Element.Size.ToVector().Mul(this.TileSize);
-		if(Element.WorldSpace){
-			Position=this.GetRenderPosition(Position,Size);	
-		}
-		if(Element instanceof _UIElement){
-			this.FillRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Color);
-			if(Element.BorderSize>0){
-				this.StrokeRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.BorderColor,Element.BorderSize);
+	GameLoop(){
+		let Renderer = this.Renderer;
+		for(let RenderLayer of Renderer.RawRenderLayers){
+			for(let R of RenderLayer.Layer){
+				if(!this.IsOnScreen(R))continue;
+				let SetX=true,SetY=true;
+				if(R.CanMove===true){
+						
+				}
+				/*
+				let SetX=true,SetY=true;
+                if(r.CanMove==true){
+                	let NPX = r.Position.Add(new Vector(r.Velocity.x,0));
+                    let NPY = r.Position.Add(new Vector(0,r.Velocity.y));
+                    let CX = r.CheckCollision(NPX);
+                    let CY = r.CheckCollision(NPY);
+                    if(CX&&CX.CanCollide)SetX=false;
+                    if(CY&&CY.CanCollide)SetY=false;
+                }
+                if(SetY){
+                	r.Position.y+=r.Velocity.y;
+                }else{
+                	r.Position.y-=r.Velocity.y;
+                	r.Velocity.y=0;
+                }
+                if(SetX){
+                	r.Position.x+=r.Velocity.x;
+                }else{
+                	r.Position.x-=r.Velocity.x;
+                	r.Velocity.x=0;
+                }
+                r.Rotation+=r.RotationVelocity;
+                if(r.OnGameLoop){
+                	r.OnGameLoop();
+                }
+				*/
 			}
 		}
-		if(Element instanceof _UIText){
+	}
+	DrawUIElement(Element,Offset=BlankVector){
+		let Position = Element.Position.ToVector().Add(Offset),
+		    Size = Element.Size.ToVector().Mul(this.TileSize);
+		if(Element.WorldSpace)
+			Position=this.GetRenderPosition(Position,Size);
+		if(Element instanceof _UIElement){
+			this.FillRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Color);
+			if(Element.BorderSize>0)
+				this.StrokeRect(Position,Size,Element.Rotation,Element.AnchorPoint,Element.BorderColor,Element.BorderSize);
+		}
+		if(Element instanceof _UIText)
 			this.FillText(Position,Size,Element.Rotation,Element.AnchorPoint,Element.Text,Element.Font,Element.TextColor,Element.TextScaled,Element.TextSize);
-		}
-		if(Element instanceof _UIImage){
-			this.DrawImage(Element.Image,Position,Size,Element.Rotation,Element.AnchorPoint,Element.ImageTransparency);	
-		}
+		if(Element instanceof _UIImage)
+			this.DrawImage(Element.Image,Position,Size,Element.Rotation,Element.AnchorPoint,Element.ImageTransparency);
+		if(Element.Children.length > 0)
+			for(let Child of Element.Children)
+				this.DrawUIElement(Child,Offset.Add(Element.Position));
 	}
 	UIRender(){
 		let Renderer = this.Renderer;
@@ -252,6 +290,14 @@ class _Renderable {
 	}
 	SetPivotPoint(x=0,y=0){
 		Assign(this.PivotPoint,{x,y});
+	}
+	get LookVector(){
+		let A=Math.rad(this.Rotation);
+		return new Vector(-Math.cos(A),-Math.sin(A))
+	}
+	get RightVector(){
+		let A=Math.rad(this.Rotation+90);
+		return new Vector(-Math.cos(A),-Math.sin(A))
 	}
 }
 
