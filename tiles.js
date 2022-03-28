@@ -1,6 +1,7 @@
 const Render = new _Renderer("screen");
 Render.NewRenderLayer("Tile",10);
 Render.NewRenderLayer("Entity",5);
+Render.LoadedImages = window.LoadedImages;
 
 const TileData = {
 	/*
