@@ -128,6 +128,29 @@ class _Screen {
 		let Renderer = this.Renderer;
 		return this.IsColliding(R,{Position:Renderer.Camera.Position.Sub(this.Size.Div(2)).Sub(1),Size:this.Size.Add(2)});
 	}
+	GetCollisions(R,P,S){
+		let Collisions = [],
+		    Renderer = this.Renderer;
+		for(let RenderLayer of Renderer.RawRenderLayers)
+			for(let I of RenderLayer.Layer){
+				if(I==R||!I.CanTouch||!this.IsOnScreen(I))continue;
+				if(this.IsColliding(R,I,P,S))
+					Collisions.push(I);
+			}
+		return Collisions;
+	}
+	CheckColliding(R,P,S){
+		return !!this.GetColliding(R,P,S);
+	}
+	GetColliding(R,P,S){
+		let Renderer = this.Renderer;
+		for(let RenderLayer of Renderer.RawRenderLayers)
+			for(let I of RenderLayer.Layer){
+				if(I==R||!I.CanTouch||!this.IsOnScreen(I))continue;
+				if(this.IsColliding(R,I,P,S))
+					return I;
+			}
+	}
 	//{{ Drawing Method }}\\
 	ClearFrame(){
 		this.Context.clearRect(0,0,this.Screen.width,this.Screen.height);
@@ -155,37 +178,22 @@ class _Screen {
 				if(!this.IsOnScreen(R))continue;
 				let SetX=true,SetY=true;
 				if(R.CanMove===true){
-						
+					let NPX = R.Position.Add(new Vector(R.Velocity.x,0)),
+					    NPY = R.Position.Add(new Vector(0,R.Velocity.y)),
+					    CX = this.GetColliding(R,NPX),
+					    CY = this.GetColliding(R,NPY);
+					if(CX&&CX.CanCollide)SetX=false;
+					if(CY&&CY.CanCollide)SetY=false;
 				}
-				/*
-				let SetX=true,SetY=true;
-                if(r.CanMove==true){
-                	let NPX = r.Position.Add(new Vector(r.Velocity.x,0));
-                    let NPY = r.Position.Add(new Vector(0,r.Velocity.y));
-                    let CX = r.CheckCollision(NPX);
-                    let CY = r.CheckCollision(NPY);
-                    if(CX&&CX.CanCollide)SetX=false;
-                    if(CY&&CY.CanCollide)SetY=false;
-                }
-                if(SetY){
-                	r.Position.y+=r.Velocity.y;
-                }else{
-                	r.Position.y-=r.Velocity.y;
-                	r.Velocity.y=0;
-                }
-                if(SetX){
-                	r.Position.x+=r.Velocity.x;
-                }else{
-                	r.Position.x-=r.Velocity.x;
-                	r.Velocity.x=0;
-                }
-                r.Rotation+=r.RotationVelocity;
-                if(r.OnGameLoop){
-                	r.OnGameLoop();
-                }
-				*/
+				if(SetY)R.Position.y+=R.Velocity.y;
+				else R.Position.y-=R.Velocity.y,R.Velocity.y=0;
+				if(SetX)R.Position.x+=R.Velocity.x;
+				else R.Position.x-=R.Velocity.x,R.Velocity.x=0;
+				R.Rotation+=R.RotationVelocity||0;
+				if(R.OnGameLoop)R.OnGameLoop();
 			}
 		}
+		this.Render();
 	}
 	DrawUIElement(Element,Offset=BlankVector){
 		let Position = Element.Position.ToVector().Add(Offset),
@@ -212,14 +220,6 @@ class _Screen {
 			this.DrawUIElement(Element);
 		}
 	}
-	/*
-            if(e instanceof UIText){
-            	this.DrawUIText(e.Text,e.Font,e.Size,e.Position,e.TextColor,e.Angle,e.TextScaled,e.TextSize,e.WorldSpace,e.AnchorPoint);
-            }
-            if(e instanceof UIImage){
-            	this.DrawUIImage(e.Image,e.Size,e.Position,e.Transparency,e.Angle,e.WorldSpace,e.AnchorPoint);
-            }
-        }
 	*/
 }
 
@@ -280,6 +280,11 @@ class _Renderable {
 			Image:"",
 			Transparency:0,
 			Rotation:0,
+			Velocity:new Vector(0,0),
+			RotationVelocity:0,
+			CanMove:false,
+			CanCollide:true,
+			CanTouch:true,
 		});
 	}
 	SetPosition(x=0,y=0){
