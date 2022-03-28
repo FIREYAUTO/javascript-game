@@ -52,12 +52,19 @@
 			}
 			
 			window.addEventListener("load",()=>{
-				const Scripts = [
-					"engine.js",
-					"tiles.js",
-					"game.js",
-				];
-				Scripts.forEach(LoadScript);
+				const {Textures,Path} = JSON.parse(GetFile("https://fireyauto.github.io/javascript-game/textures.json"));
+				for(let Name in Textures)
+					Textures[Name]=Path+Textures[Name];
+				const Context = LoadImages(Textures);
+				Context.on("done",Data=>{
+					window.LoadedImages=Data;
+					const Scripts = [
+						"engine.js",
+						"tiles.js",
+						"game.js",
+					];
+					Scripts.forEach(LoadScript);	
+				});
 			});
 			
 		</script>
