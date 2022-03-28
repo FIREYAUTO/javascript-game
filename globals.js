@@ -39,6 +39,32 @@ function GetElement(Id){
 	return document.getElementById(Id);
 }
 
+function GetFile(URL){
+	let XML = new XMLHttpRequest();
+	XML.open("GET",URL,false);
+	XML.send();
+	return XML.response;
+}
+
+function LoadImages(URLs={}){
+	let Amount = URLs.length,
+	    Loaded = 0,
+	    Data = {},
+	    Context = new Listener(["done"]);
+	for(let Name in URLs){
+		let URL = URLs[Name];
+		let Img = new Image();
+		Img.onload=function(){
+			Loaded++;
+			Data[Name]=Img;
+			Img.onload=null;
+			if(Loaded>=Amount)Context.fire("done",Data);
+		}
+		Img.src=URL;
+	}
+	return Context;
+}
+
 //{{ Noise Library (Not Mine, https://github.com/joeiddon/perlin/blob/master/perlin.js) }}\\
 
 let perlin = {
