@@ -47,7 +47,7 @@ function GetFile(URL){
 }
 
 function LoadImages(URLs={}){
-	let Amount = URLs.length,
+	let Amount = Object.keys(URLs).length,
 	    Loaded = 0,
 	    Data = {},
 	    Context = new Listener(["done"]);
