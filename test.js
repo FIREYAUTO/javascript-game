@@ -136,13 +136,13 @@ const Screen = {
 
 const Input = {
 	KeysDown:{},
-	AddKey:(Key)=>{
+	AddKey:function(Key){
 		this.KeysDown[Key.toLowerCase()]=true;	
 	},
-	RemoveKey:(Key)=>{
+	RemoveKey:function(Key){
 		this.KeysDown[Key.toLowerCase()]=false;
 	},
-	IsKeyDown:(Key)=>{
+	IsKeyDown:function(Key){
 		return this.KeysDown[Key.toLowerCase()]===true;
 	},
 };
