@@ -143,7 +143,7 @@ const Input = {
 		this.KeysDown[Key.toLowerCase()]=false;
 	},
 	IsKeyDown:(Key)=>{
-		return this.KeysDown[Key.toLowerCase]===true;
+		return this.KeysDown[Key.toLowerCase()]===true;
 	},
 };
 
