@@ -130,7 +130,30 @@ const Screen = {
 	fillRect(x,y,sx,sy){
 		this.context.fillRect(x,y,sx,sy);	
 	},
-}
+};
+
+//{{ Input }}\\
+
+const Input = {
+	KeysDown:{},
+	AddKey:(Key)=>{
+		this.KeysDown[Key.toLowerCase()]=true;	
+	},
+	RemoveKey:(Key)=>{
+		this.KeysDown[Key.toLowerCase()]=false;
+	},
+	IsKeyDown:(Key)=>{
+		return this.KeysDown[Key.toLowerCase]===true;
+	},
+};
+
+window.addEventListener("keydown",e=>{
+	Input.AddKey(e.key);
+});
+
+window.addEventListener("keyup",e=>{
+	Input.RemoveKey(e.key);
+});
 
 //{{ Renderable }}\\
 
@@ -158,6 +181,7 @@ const Game = {
 	Layers:LayerManager,
 	RenderableClasses:{},
 	Screen,
+	Input,
 	NewRenderableType(Name,Priority,Class){
 		this.RenderableClasses[Name]=Class;
 		this.Layers.new(Name,Priority);
@@ -173,7 +197,7 @@ const Game = {
 		this.Layers.each(Layer=>Layer.each(Reference=>{
 			Reference[Symbols.render].call(Reference,self);
 		}));
-	}
+	},
 };
 
 //{{ Setup }}\\
