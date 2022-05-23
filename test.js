@@ -215,3 +215,10 @@ Game.NewRenderableType("Particle",1,Renderable),
 Game.NewRenderableType("Entity",2,Renderable);
 
 Game.Layers.generateCache();
+
+//{{ Library Extensions }}\\
+
+Math.deg=x=>x*180/Math.PI;
+Math.rad=x=>x*Math.PI/180;
+Math.lerp=(a,b,t)=>(1-t)*a+t*b;
+Math.clamp=(a,m,M)=>Math.max(Math.min(a,M),m);
