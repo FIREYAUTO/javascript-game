@@ -187,6 +187,7 @@ const Game = {
 	RenderableClasses:{},
 	Screen,
 	Input,
+	frame:0,
 	NewRenderableType(Name,Priority,Class){
 		this.RenderableClasses[Name]=Class;
 		this.Layers.new(Name,Priority);
@@ -198,6 +199,7 @@ const Game = {
 		return New;
 	},
 	render(){
+		this.frame++;
 		this.Screen.clear();
 		let self = this;
 		this.Layers.each(Layer=>Layer.each(Reference=>{
