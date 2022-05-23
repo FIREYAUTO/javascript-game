@@ -28,6 +28,42 @@ class Color {
 	}
 }
 
+//{{ Connection & Signal }}\\
+
+class Connection {
+	constructor(Parent,Callback){
+		this.Signal=Parent,
+			this.Callback=Callback;
+	}
+	disconnect(){
+		if(!this.Signal)return;
+		this.Signal.Connections.splice(this.Signal.Connections.indexOf(this),1);
+		this.Signal=this.Callback=undefined;
+	}
+	toString(){
+		return `${Connection} ${this.Signal?this.Signal.Name:"Disconnected"}`;	
+	}
+}
+
+class Signal {
+	constructor(Name){
+		this.Name=Name,
+			this.Connections=[];
+	}
+	connect(callback){
+		let c = new Connection(this,callback);
+		this.Connections.push(c);
+		return c;
+	}
+	fire(...a){
+		for(let c of this.Connections)
+			c.Callback(...a);
+	}
+	toString(){
+		return `Signal ${this.Name}`;	
+	}
+}
+
 //{{ Collection }}\\
 
 class Collection {
@@ -152,14 +188,19 @@ const Input = {
 	IsKeyDown:function(Key){
 		return this.KeysDown[Key.toLowerCase()]===true;
 	},
+	OnKeyDown:new Signal("OnKeyDown"),
+	OnKeyUp:new Signal("OnKeyUp"),
 };
 
 window.addEventListener("keydown",e=>{
+	if(e.repeat)return;
 	Input.AddKey(e.key);
+	Input.OnKeyDown.fire(e.key);
 });
 
 window.addEventListener("keyup",e=>{
 	Input.RemoveKey(e.key);
+	Input.OnKeyUp.fire(e.key);
 });
 
 //{{ Renderable }}\\
