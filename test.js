@@ -175,7 +175,7 @@ class Renderable {
 	//{{ Symbols }}\\
 	[Symbols.render](){
 		this.color.a=this.transparency;
-		Game.Screen.fillColor = this.Color;
+		Game.Screen.fillColor = this.color;
 		Game.Screen.fillRect(this.x,this.y,this.sizex,this.sizey);
 	}
 }
