@@ -256,10 +256,21 @@ const Game = {
 		this.RenderableClasses[Name]=Class;
 		this.Layers.new(Name,Priority);
 	},
+	NewRenderable(Name,Class){
+		this.RenderableClasses[Name]=Class;	
+	},
 	new(Name,Properties={}){
 		let New = new (this.RenderableClasses[Name])();
 		for(let k in Properties)New[k]=Properties[k];
 		this.Layers.get(Name).push(New);
+		return New;
+	},
+	make(Name,LayerName,Properties={}){
+		let New = new (this.RenderableClasses[Name])();
+		for(let k in Properties)New[k]=Properties[k];
+		if(LayerName){
+			this.Layers.get(Name).push(New);	
+		}
 		return New;
 	},
 	render(){
