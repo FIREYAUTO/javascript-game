@@ -176,6 +176,10 @@ const Screen = {
 	fillRect(x,y,sx,sy){
 		this.context.fillRect(x,y,sx,sy);	
 	},
+	fillText(text,font,x,y,sx){
+		this.context.font=font;
+		this.context.fillText(text,x,y,sx);	
+	},
 };
 
 //{{ Input }}\\
@@ -240,9 +244,15 @@ class UIElement extends Renderable {
 	[Symbols.render](){
 		this.color.a=this.transparency;
 		Game.Screen.fillColor = this.color;
-		let px=(this.scalex*Game.Screen.width)+this.sizex;
-		let py=(this.scaley*Game.Screen.height)+this.sizey;
-		Game.Screen.fillRect(this.x+(px*this.anchorx),this.y+(py*this.anchory),px,py);
+		let sx=(this.scalex*Game.Screen.width)+this.sizex,
+			sy=(this.scaley*Game.Screen.height)+this.sizey;
+		let px=this.x+(sx*this.anchorx),
+			py=this.y+(sy*this.anchory);
+		Game.Screen.fillRect(px,py,sx,sy);
+		if(this.text){
+			let fs = `${this.textScaled?sy:this.textSize}px ${this.font}`;
+			Game.Screen.fillText(this.text,fs,px,py,sx);
+		}
 		for(let child of this.children){
 			child[Symbols.render]();	
 		}
