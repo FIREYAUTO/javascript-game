@@ -236,9 +236,6 @@ const Game = {
 
 //{{ Setup }}\\
 
-Game.NewRenderableType("Tile",0,Renderable),
-
-Game.Layers.generateCache();
 
 //{{ Library Extensions }}\\
 
