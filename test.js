@@ -124,7 +124,7 @@ const LayerManager = {
 			let layer = this.Layers[name];
 			if(layer.Collection===Collection)return layer;
 		}
-	}
+	},
 	generateCache(){
 		this.LayerCache=Object.values(this.Layers).sort((a,b)=>
 a.Priority>b.Priority?1:a.Priority<b.Priority?-1:0).map(x=>x.Collection);
