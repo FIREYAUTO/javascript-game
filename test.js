@@ -230,6 +230,22 @@ class Renderable {
 	}
 }
 
+class UIElement extends Renderable {
+	constructor(){
+		super();
+		this.anchorx=this.anchory=0;
+		this.children=new Collection();
+	}
+	[Symbols.render](){
+		this.color.a=this.transparency;
+		Game.Screen.fillColor = this.color;
+		Game.Screen.fillRect(this.x+(this.sizex*this.anchorx),this.y+(this.sizey*this.anchory),this.sizex,this.sizey);
+		for(let child of this.children){
+			child[Symbols.render]();	
+		}
+	}
+}
+
 //{{ Game }}\\
 
 const Game = {
