@@ -83,6 +83,12 @@ const LayerManager = {
 	get(Name){
 		return this.getRaw(Name).Collection;	
 	},
+	getByCollection(Collection){
+		for(let name in this.Layers){
+			let layer = this.Layers[name];
+			if(layer.Collection===Collection)return layer;
+		}
+	}
 	generateCache(){
 		this.LayerCache=Object.values(this.Layers).sort((a,b)=>
 a.Priority>b.Priority?1:a.Priority<b.Priority?-1:0).map(x=>x.Collection);
@@ -188,6 +194,23 @@ const Game = {
 	Screen,
 	Input,
 	frame:0,
+	renderPreventions:[],
+	preventRenderingOnLayer(Priority){
+		if(!this.renderPreventions.includes(Priority)){
+			this.renderPreventions.push(Priority);	
+		}
+	},
+	allowRenderingOnLayer(Priority){
+		if(!this.renderPreventions.includes(Priority))return;
+		this.renderPreventions.splice(this.renderPreventions.indexOf(Priority),1);
+	},
+	disableAllRenderingExcept(Priority){
+		for(let name in this.Layers.Layers){
+			let layer = this.Layers.Layers[name];
+			if(layer.Priority===Priority)this.allowRenderingOnLayer(Priority);
+			else this.preventRenderingOnLayer(layer.Priority);
+		}
+	},
 	NewRenderableType(Name,Priority,Class){
 		this.RenderableClasses[Name]=Class;
 		this.Layers.new(Name,Priority);
@@ -202,17 +225,18 @@ const Game = {
 		this.frame++;
 		this.Screen.clear();
 		let self = this;
-		this.Layers.each(Layer=>Layer.each(Reference=>{
-			Reference[Symbols.render].call(Reference,self);
-		}));
+		this.Layers.each(Layer=>{
+			if(self.renderPreventions.includes(self.Layers.getByCollection(Layer).Priority))return;
+			Layer.each(Reference=>{
+				Reference[Symbols.render].call(Reference,self);
+			})
+		});
 	},
 };
 
 //{{ Setup }}\\
 
 Game.NewRenderableType("Tile",0,Renderable),
-Game.NewRenderableType("Particle",1,Renderable),
-Game.NewRenderableType("Entity",2,Renderable);
 
 Game.Layers.generateCache();
 
