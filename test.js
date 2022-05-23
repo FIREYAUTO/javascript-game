@@ -11,7 +11,7 @@ class Color {
 		this.r=r,this.g=g,this.b=b;	
 	}
 	toString(){
-		return `rgb(${this.r},${this.g},${this.b})`;	
+		return `rgb(${this.r},${this.g},${this.b},${1-(this.a||0)})`;	
 	}
 	static from(c){
 		let r=0,g=0,b=0;
@@ -120,13 +120,13 @@ const Screen = {
 		this.context.fillStyle=color.toString();
 	},
 	set strokeColor(color){
-		this.context.strokeColor=color.toString();	
+		this.context.strokeStyle=color.toString();	
 	},
 	get fillColor(){
-		return Color.from(this.context.fillColor);	
+		return Color.from(this.context.fillStyle);	
 	},
 	get strokeColor(){
-		return Color.from(this.context.strokeColor);	
+		return Color.from(this.context.strokeStyle);	
 	},
 	fillRect(x,y,sx,sy){
 		this.context.fillRect(x,y,sx,sy);	
@@ -162,6 +162,8 @@ class Renderable {
 	constructor(){
 		this.x=this.y=this.direction=0;
 		this.sizex=1,this.sizey=1;
+		this.transparency=0;
+		this.color=new Color();
 	}
 	//{{ Methods }}\\
 	setSize(x,y){
@@ -172,6 +174,8 @@ class Renderable {
 	}
 	//{{ Symbols }}\\
 	[Symbols.render](){
+		this.color.a=this.transparency;
+		Game.Screen.fillColor = this.Color;
 		Game.Screen.fillRect(this.x,this.y,this.sizex,this.sizey);
 	}
 }
