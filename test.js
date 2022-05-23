@@ -193,6 +193,7 @@ const Game = {
 		return New;
 	},
 	render(){
+		this.Screen.clear();
 		let self = this;
 		this.Layers.each(Layer=>Layer.each(Reference=>{
 			Reference[Symbols.render].call(Reference,self);
