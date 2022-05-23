@@ -252,8 +252,9 @@ class UIElement extends Renderable {
 		if(this.text){
 			this.textColor.a=this.textTransparency||0;
 			Game.Screen.fillColor = this.textColor;
-			let fs = `${this.textScaled?sy:this.textSize}px ${this.font}`;
-			Game.Screen.fillText(this.text,fs,px,py,sx);
+			let ts=this.textScaled?sy:this.textSize;
+			let fs = `${ts}px ${this.font}`;
+			Game.Screen.fillText(this.text,fs,px,py+(ts/2),sx);
 		}
 		for(let child of this.children){
 			child[Symbols.render]();	
