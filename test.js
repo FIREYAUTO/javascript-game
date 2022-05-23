@@ -245,10 +245,10 @@ const Game = {
 		if(!this.renderPreventions.includes(Priority))return;
 		this.renderPreventions.splice(this.renderPreventions.indexOf(Priority),1);
 	},
-	disableAllRenderingExcept(Priority){
+	disableAllRenderingExcept(...A){
 		for(let name in this.Layers.Layers){
 			let layer = this.Layers.Layers[name];
-			if(layer.Priority===Priority)this.allowRenderingOnLayer(Priority);
+			if(A.includes(layer.Priority))this.allowRenderingOnLayer(layer.Priority);
 			else this.preventRenderingOnLayer(layer.Priority);
 		}
 	},
