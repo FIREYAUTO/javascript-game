@@ -96,6 +96,9 @@ class Collection {
 		let self=this;
 		return this.Data.forEach((v,k)=>x(v,k,self));	
 	}
+	flush(){
+		this.Data=[];	
+	}
 	//{{ Collection Iterator }}\\
 	*Iterable(){
 		yield* this.Data;
