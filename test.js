@@ -234,12 +234,13 @@ class UIElement extends Renderable {
 	constructor(){
 		super();
 		this.anchorx=this.anchory=0;
+		this.scalex=this.scaley=0;
 		this.children=new Collection();
 	}
 	[Symbols.render](){
 		this.color.a=this.transparency;
 		Game.Screen.fillColor = this.color;
-		Game.Screen.fillRect(this.x+(this.sizex*this.anchorx),this.y+(this.sizey*this.anchory),this.sizex,this.sizey);
+		Game.Screen.fillRect((this.scalex*Game.Screen.width)+this.x+(this.sizex*this.anchorx),(this.scaley*Game.Screen.height)+this.y+(this.sizey*this.anchory),this.sizex,this.sizey);
 		for(let child of this.children){
 			child[Symbols.render]();	
 		}
