@@ -103,6 +103,7 @@ const Screen = {
 		else this.canvas=document.querySelector(x);
 		this.context=this.canvas.getContext("2d");
 		this.width=this.height=100;
+		this.handleSize();
 	},
 	handleSize(){
 		this.canvas.style.width=`${this.canvas.width=this.width}px`;
