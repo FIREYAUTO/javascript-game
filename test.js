@@ -246,8 +246,8 @@ class UIElement extends Renderable {
 		Game.Screen.fillColor = this.color;
 		let sx=(this.scalex*Game.Screen.width)+this.sizex,
 			sy=(this.scaley*Game.Screen.height)+this.sizey;
-		let px=this.x+(sx*this.anchorx),
-			py=this.y+(sy*this.anchory);
+		let px=this.x-(sx*this.anchorx),
+			py=this.y-(sy*this.anchory);
 		Game.Screen.fillRect(px,py,sx,sy);
 		if(this.text){
 			this.textColor.a=this.textTransparency||0;
